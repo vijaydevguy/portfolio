@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 import { CLOUDINARY_URLS } from "./assets";
@@ -7,6 +6,12 @@ import { CLOUDINARY_URLS } from "./assets";
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-heading",
   display: "swap",
 });
 
@@ -41,17 +46,23 @@ export const metadata: Metadata = {
   },
 };
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import Navbar from "./components/Navbar";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${outfit.variable} h-full`}>
+    <html
+      lang="en"
+      className={`${outfit.variable} ${plusJakarta.variable} h-full`}
+    >
       <body className="min-h-full flex flex-col font-sans bg-white text-zinc-900 antialiased">
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
-        {children}
+        <Navbar />
+        <div className=" pt-20">{children}</div>
       </body>
     </html>
   );

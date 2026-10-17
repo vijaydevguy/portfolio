@@ -15,3 +15,15 @@ export const CONFIG = {
   // Analytics
   GA_TRACKING_ID: process.env.NEXT_PUBLIC_GA_ID || "G-GY8ENHWSSB",
 } as const;
+
+export interface NavItem {
+  name: string;
+  href: string;
+}
+
+/**
+ * Global Navigation Links
+ * Add/manage all site navigation links in this centralized place.
+ * Every page and menu will automatically reflect updates made here.
+ */
+export const NAV_ITEMS: NavItem[] = [{ name: "Home", href: "/" }];
