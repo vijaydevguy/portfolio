@@ -13,6 +13,7 @@ export const CLOUDINARY_URLS = {
   // Brand & Profile
   logo_black: getCloudinaryUrl("v1792239298/logo_white_4x-1_caa6ld"),
   logo: getCloudinaryUrl("v1792239302/logo_white_4x_gns8yk"),
+  hero_img: getCloudinaryUrl("v1792249847/hero_img_oharzk"),
 } as const;
 
 export type CloudinaryKey = keyof typeof CLOUDINARY_URLS;
