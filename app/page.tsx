@@ -12,7 +12,7 @@ export default function Home() {
             alt="Logo"
             width={180}
             height={50}
-            className="h-10 w-auto object-contain"
+            className="h-10 w-auto object-cover object-center pointer-events-none select-none"
             priority
           />
         </div>
