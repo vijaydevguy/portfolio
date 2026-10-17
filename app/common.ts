@@ -12,7 +12,6 @@ export const CONFIG = {
   // Site Information
   SITE_NAME: "Vijaya kumar | Software Developer",
   SITE_DESCRIPTION: "Software Developer Portfolio",
-  SITE_URL:
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://portfolio-gray-two-lmd2px973r.vercel.app",
+  // Analytics
+  GA_TRACKING_ID: process.env.NEXT_PUBLIC_GA_ID || "G-GY8ENHWSSB",
 } as const;

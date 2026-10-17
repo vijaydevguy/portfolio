@@ -41,10 +41,16 @@ export const metadata: Metadata = {
   },
 };
 
+import { Suspense } from "react";
+import GoogleAnalytics from "./components/GoogleAnalytics";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${outfit.variable} h-full`}>
       <body className="min-h-full flex flex-col font-sans bg-white text-zinc-900 antialiased">
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         {children}
       </body>
     </html>
