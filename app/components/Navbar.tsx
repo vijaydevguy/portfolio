@@ -88,7 +88,7 @@ export default function Navbar() {
               alt="Vijay Kumar Logo"
               width={140}
               height={36}
-              className="h-8 w-auto object-cover transition-transform duration-200 "
+              className="h-8 w-auto object-cover transition-transform duration-200 select-none pointer-events-none"
               priority
             />
           </Link>
