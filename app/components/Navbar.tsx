@@ -28,7 +28,7 @@ export default function Navbar() {
   // borderRadius: 9999px (full pill) -> 0px
   // top: 16px -> 0px
   // paddingX: 24px -> 40px
-  const rawWidth = useTransform(scrollY, [0, 80], ["80%", "100%"]);
+  const rawWidth = useTransform(scrollY, [0, 80], ["85%", "100%"]);
   const rawBorderRadius = useTransform(scrollY, [0, 80], [9999, 0]);
   const rawTop = useTransform(scrollY, [0, 80], [16, 0]);
   const rawShadow = useTransform(

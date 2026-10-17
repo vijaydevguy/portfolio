@@ -26,4 +26,6 @@ export interface NavItem {
  * Add/manage all site navigation links in this centralized place.
  * Every page and menu will automatically reflect updates made here.
  */
-export const NAV_ITEMS: NavItem[] = [{ name: "Home", href: "/" }];
+export const NAV_ITEMS: NavItem[] = [
+  { name: "Home", href: "/" },
+];
