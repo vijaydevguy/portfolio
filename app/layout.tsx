@@ -16,9 +16,28 @@ export const metadata: Metadata = {
   title: "Vijaya kumar | software developer",
   description: "Software Developer",
   icons: {
-    icon: logo,
-    shortcut: logo,
-    apple: logo,
+    icon: CLOUDINARY_URLS.logo,
+    shortcut: CLOUDINARY_URLS.logo,
+    apple: CLOUDINARY_URLS.logo,
+  },
+  openGraph: {
+    title: "Vijaya kumar | software developer",
+    description: "Software Developer Portfolio",
+    type: "website",
+    images: [
+      {
+        url: CLOUDINARY_URLS.logo_black,
+        width: 1200,
+        height: 630,
+        alt: "Vijaya kumar - Software Developer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vijaya kumar | software developer",
+    description: "Software Developer Portfolio",
+    images: [CLOUDINARY_URLS.logo_black],
   },
 };
 
