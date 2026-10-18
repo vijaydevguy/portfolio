@@ -12,6 +12,9 @@ export const CONFIG = {
   // Site Information
   SITE_NAME: "Vijaya kumar | Software Developer",
   SITE_DESCRIPTION: "Software Developer Portfolio",
+  // Resume Direct Download URL (Google Drive)
+  RESUME_DOWNLOAD_URL:
+    "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
   // Analytics
   GA_TRACKING_ID: process.env.NEXT_PUBLIC_GA_ID || "G-GY8ENHWSSB",
 } as const;

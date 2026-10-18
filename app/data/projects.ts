@@ -26,7 +26,7 @@ export const PROJECTS_DATA: ProjectItem[] = [
       "Enterprise platform managing Master Admin, multi-vendor Tenant stores, and customer storefronts with real-time POS billing.",
     technologies: ["React.js", "Redux", "Node.js", "MongoDB"],
     previewImages: [
-      "https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
       "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
     ],

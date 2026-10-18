@@ -2,6 +2,7 @@ import HeroSection from "./components/HeroSection";
 import ExperienceSection from "./components/ExperienceSection";
 import ProjectsSection from "./components/ProjectsSection";
 import SkillsSection from "./components/SkillsSection";
+import ContactSection from "./components/ContactSection";
 
 export default function Home() {
   return (
@@ -15,8 +16,11 @@ export default function Home() {
       {/* 3. Featured Projects Section (alternating bg-white) */}
       <ProjectsSection />
 
-      {/* 4. Skills & Technologies Section (alternating bg-[#F8FAFC]) */}
+      {/* 4. Skills & Technologies Section (alternating bg-white) */}
       <SkillsSection />
+
+      {/* 5. Contact Section (alternating bg-[#F8FAFC]) */}
+      <ContactSection />
     </main>
   );
 }
