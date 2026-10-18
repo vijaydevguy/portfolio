@@ -29,10 +29,20 @@ export const urlValidation = Yup.string()
   .trim()
   .url("Enter a valid URL (e.g. https://...)");
 
+export const nameOptionalValidation = Yup.string()
+  .trim()
+  .max(80, "Name is too long");
+
 /**
  * Shared Form Schemas
  */
 export const adminLoginSchema = Yup.object().shape({
+  email: emailValidation,
+  password: passwordValidation,
+});
+
+export const adminSignupSchema = Yup.object().shape({
+  name: nameOptionalValidation,
   email: emailValidation,
   password: passwordValidation,
 });
