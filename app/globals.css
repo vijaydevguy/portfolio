@@ -13,3 +13,17 @@
 body {
   font-family: var(--font-sans);
 }
+
+/* Allow floating tooltips in react-fast-marquee to render outside without being clipped */
+.rfm-marquee-container {
+  overflow: visible !important;
+}
+
+.rfm-marquee {
+  overflow: visible !important;
+}
+
+.rfm-initial-child-container,
+.rfm-child {
+  overflow: visible !important;
+}
