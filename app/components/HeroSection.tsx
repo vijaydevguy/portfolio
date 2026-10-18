@@ -29,7 +29,7 @@ export default function HeroSection() {
                 href={CONFIG.RESUME_DOWNLOAD_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1D4ED8] hover:bg-blue-700 active:bg-blue-800 text-white font-heading font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all cursor-pointer"
+                className="btn-primary !rounded-xl !py-3.5 !font-heading !font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30"
               >
                 <svg
                   className="w-4 h-4"
@@ -50,7 +50,7 @@ export default function HeroSection() {
               {/* Contact Navigation CTA */}
               <a
                 href="#contact"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 hover:border-zinc-300 active:bg-zinc-200 text-zinc-800 font-heading font-semibold text-sm transition-all cursor-pointer"
+                className="btn-secondary !rounded-xl !py-3.5 !font-heading !font-semibold"
               >
                 <span>Get in Touch</span>
                 <svg

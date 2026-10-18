@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { WORK_EXPERIENCE, EDUCATION } from "../data/experience";
+import SectionHeading from "./ui/SectionHeading";
 
 export default function ExperienceSection() {
   return (
@@ -11,17 +12,14 @@ export default function ExperienceSection() {
     >
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center space-y-3 mb-16 max-w-2xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#1D4ED8] font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-100">
-            Career & Background
-          </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-950 font-heading">
-            Work <span className="text-[#1D4ED8]">Experience</span>
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 font-normal">
-            My professional journey developing software, building full-stack
-            products, and designing interfaces.
-          </p>
+        <div className="mb-16">
+          <SectionHeading
+            badge="Career & Background"
+            title="Work"
+            highlightedText="Experience"
+            description="My professional journey developing software, building full-stack products, and designing interfaces."
+            alignment="center"
+          />
         </div>
 
         {/* Experience Timeline */}

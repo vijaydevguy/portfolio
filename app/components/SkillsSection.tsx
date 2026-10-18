@@ -3,6 +3,7 @@
 import Marquee from "react-fast-marquee";
 import { useState, useRef, useEffect } from "react";
 import { SKILLS_ROW_1, SKILLS_ROW_2, SkillItem } from "../data/skills";
+import SectionHeading from "./ui/SectionHeading";
 
 function SkillChip({ skill }: { skill: SkillItem }) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -66,14 +67,12 @@ export default function SkillsSection() {
     >
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#1D4ED8] font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-100">
-            Technical Proficiency
-          </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-950 font-heading">
-            Skills & <span className="text-[#1D4ED8]">Technologies</span>
-          </h2>
-        </div>
+        <SectionHeading
+          badge="Technical Proficiency"
+          title="Skills &"
+          highlightedText="Technologies"
+          alignment="center"
+        />
       </div>
 
       {/* 2-Row Smooth Marquee with react-fast-marquee */}

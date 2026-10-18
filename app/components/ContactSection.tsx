@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { getCalApi } from "@calcom/embed-react";
 import { useContactForm } from "../hooks/useContactForm";
 import { CONFIG } from "../common";
+import SectionHeading from "./ui/SectionHeading";
 
 export default function ContactSection() {
   const {
@@ -41,18 +42,13 @@ export default function ContactSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left Column: Heading, Recruiter/HR Pitch, Value Proposition & Cal.com (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            <span className="text-xs uppercase tracking-widest text-[#1D4ED8] font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-100 inline-block">
-              Opportunities & Hiring
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-950 font-heading leading-tight">
-              Looking to hire a{" "}
-              <span className="text-[#1D4ED8]">full-stack engineer</span>?
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
-              I am actively looking for full-time engineering roles, as well as
-              freelance and personal project collaborations. Leave your details
-              and I will get back to you promptly.
-            </p>
+            <SectionHeading
+              badge="Opportunities & Hiring"
+              title="Looking to hire a"
+              highlightedText="full-stack engineer?"
+              description="I am actively looking for full-time engineering roles, as well as freelance and personal project collaborations. Leave your details and I will get back to you promptly."
+              alignment="left"
+            />
 
             {/* Candidate Highlights for Recruiters / HR */}
             <div className="pt-2 space-y-3">

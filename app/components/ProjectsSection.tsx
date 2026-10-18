@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { PROJECTS_DATA, ProjectItem } from "../data/projects";
 import ProjectCard from "./ProjectCard";
+import SectionHeading from "./ui/SectionHeading";
 
 const CATEGORIES = ["All", "Development", "UI / UX Design"] as const;
 
@@ -23,18 +24,13 @@ export default function ProjectsSection() {
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header & Category Filter */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
-          <div className="space-y-3 max-w-xl">
-            <span className="text-xs uppercase tracking-widest text-[#1D4ED8] font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-100 inline-block">
-              Featured Work
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-950 font-heading">
-              Selected <span className="text-[#1D4ED8]">Projects</span>
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 font-normal">
-              A curated collection of full-stack platforms, modern web
-              applications, and UI/UX systems.
-            </p>
-          </div>
+          <SectionHeading
+            badge="Featured Work"
+            title="Selected"
+            highlightedText="Projects"
+            description="A curated collection of full-stack platforms, modern web applications, and UI/UX systems."
+            alignment="left"
+          />
 
           {/* Category Filter Tabs */}
           <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 self-start md:self-auto font-heading">
