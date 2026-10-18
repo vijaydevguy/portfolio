@@ -24,6 +24,12 @@ export const CONFIG = {
   WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919876543210",
   WHATSAPP_PREFILLED_MESSAGE:
     "Hi Vijay, I came across your portfolio and would like to discuss an opportunity with you!",
+  // Backend API URL: automatically switches between localhost:5000 and Render
+  BACKEND_URL:
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    (process.env.NODE_ENV === "production"
+      ? "https://portfolio-backend-6z04.onrender.com"
+      : "http://localhost:5000"),
   // Analytics
   GA_TRACKING_ID: process.env.NEXT_PUBLIC_GA_ID || "G-GY8ENHWSSB",
 } as const;
