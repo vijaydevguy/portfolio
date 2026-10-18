@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { nameValidation, emailValidation } from "../lib/validations";
 import {
   parsePhoneNumber,
   CountryCode,

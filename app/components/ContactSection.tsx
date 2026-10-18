@@ -170,11 +170,8 @@ export default function ContactSection() {
                   {/* 1. Name & Email Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Name Field */}
-                    <div className="relative pb-5">
-                      <label
-                        htmlFor="name"
-                        className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5"
-                      >
+                    <div className="form-group">
+                      <label htmlFor="name" className="form-label">
                         Your Name <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -186,25 +183,20 @@ export default function ContactSection() {
                         value={formik.values.name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-zinc-900 placeholder:text-slate-400 focus:outline-none transition-all ${
+                        className={`form-input ${
                           formik.touched.name && formik.errors.name
-                            ? "border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200"
-                            : "border-zinc-200 bg-zinc-50/40 focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-blue-100"
+                            ? "form-input-error"
+                            : ""
                         }`}
                       />
                       {formik.touched.name && formik.errors.name && (
-                        <p className="absolute bottom-0 left-0 text-xs text-rose-600 font-medium whitespace-nowrap">
-                          {formik.errors.name}
-                        </p>
+                        <p className="form-error-msg">{formik.errors.name}</p>
                       )}
                     </div>
 
                     {/* Email Field (Required) */}
-                    <div className="relative pb-5">
-                      <label
-                        htmlFor="email"
-                        className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5"
-                      >
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">
                         Email Address <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -216,16 +208,14 @@ export default function ContactSection() {
                         value={formik.values.email}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-zinc-900 placeholder:text-slate-400 focus:outline-none transition-all ${
+                        className={`form-input ${
                           formik.touched.email && formik.errors.email
-                            ? "border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-200"
-                            : "border-zinc-200 bg-zinc-50/40 focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-blue-100"
+                            ? "form-input-error"
+                            : ""
                         }`}
                       />
                       {formik.touched.email && formik.errors.email && (
-                        <p className="absolute bottom-0 left-0 text-xs text-rose-600 font-medium whitespace-nowrap">
-                          {formik.errors.email}
-                        </p>
+                        <p className="form-error-msg">{formik.errors.email}</p>
                       )}
                     </div>
                   </div>
