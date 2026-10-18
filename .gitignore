@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Internal tracking and planning documents (keep out of git repo)
+plan.md
+.agents/
+.gemini/
+
