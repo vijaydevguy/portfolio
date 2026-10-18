@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { getCalApi } from "@calcom/embed-react";
 import { useContactForm } from "../hooks/useContactForm";
+import { CONFIG } from "../common";
 
 export default function ContactSection() {
   const {
@@ -16,6 +19,19 @@ export default function ContactSection() {
     handlePhoneChange,
   } = useContactForm();
 
+  // Initialize Cal.com embed popup
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi({ namespace: CONFIG.CAL_COM_NAMESPACE });
+      cal("ui", {
+        theme: "light",
+        styles: { branding: { brandColor: "#1D4ED8" } },
+        hideEventTypeDetails: false,
+        layout: "month_view",
+      });
+    })();
+  }, []);
+
   return (
     <section
       id="contact"
@@ -23,7 +39,7 @@ export default function ContactSection() {
     >
       <div className="w-full max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          {/* Left Column: Heading, Recruiter/HR Pitch, Value Proposition (5 cols) */}
+          {/* Left Column: Heading, Recruiter/HR Pitch, Value Proposition & Cal.com (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
             <span className="text-xs uppercase tracking-widest text-[#1D4ED8] font-bold px-3 py-1 rounded-full bg-blue-50 border border-blue-100 inline-block">
               Opportunities & Hiring
@@ -33,13 +49,13 @@ export default function ContactSection() {
               <span className="text-[#1D4ED8]">full-stack engineer</span>?
             </h2>
             <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed">
-              I am actively looking for full-time engineering roles, as well
-              as freelance and personal project collaborations. Leave your
-              details and I will get back to you promptly.
+              I am actively looking for full-time engineering roles, as well as
+              freelance and personal project collaborations. Leave your details
+              and I will get back to you promptly.
             </p>
 
             {/* Candidate Highlights for Recruiters / HR */}
-            <div className="pt-4 space-y-3">
+            <div className="pt-2 space-y-3">
               <div className="flex items-center gap-3 text-sm text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-[#1D4ED8] flex-shrink-0" />
                 <span>Actively Seeking Full-Time Opportunities</span>
@@ -57,6 +73,48 @@ export default function ContactSection() {
                   Production experience delivering multi-tenant SaaS & web apps
                 </span>
               </div>
+            </div>
+
+            {/* Cal.com Instant Schedule Button */}
+            <div className="pt-4 border-t border-zinc-200/70">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                Prefer a quick chat directly?
+              </p>
+              <button
+                type="button"
+                data-cal-namespace={CONFIG.CAL_COM_NAMESPACE}
+                data-cal-link={CONFIG.CAL_COM_LINK}
+                data-cal-config='{"layout":"month_view"}'
+                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white border border-zinc-200 hover:border-[#1D4ED8] hover:text-[#1D4ED8] text-zinc-900 font-heading font-semibold text-sm shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              >
+                <svg
+                  className="w-4 h-4 text-[#1D4ED8]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"
+                  />
+                </svg>
+                <span>Book a Call on Cal.com</span>
+                <svg
+                  className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#1D4ED8] group-hover:translate-x-0.5 transition-all"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
 

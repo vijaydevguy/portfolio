@@ -15,6 +15,15 @@ export const CONFIG = {
   // Resume Direct Download URL (Google Drive)
   RESUME_DOWNLOAD_URL:
     "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
+  // Cal.com Meeting Link & Namespace Configuration
+  CAL_COM_LINK: process.env.NEXT_PUBLIC_CAL_COM_LINK || "vijay-kumar/30min",
+  CAL_COM_NAMESPACE: "quick-chat",
+  // Quick Contact Information
+  PHONE_NUMBER: process.env.NEXT_PUBLIC_PHONE_NUMBER || "+919876543210",
+  PHONE_DISPLAY: process.env.NEXT_PUBLIC_PHONE_DISPLAY || "+91 98765 43210",
+  WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919876543210",
+  WHATSAPP_PREFILLED_MESSAGE:
+    "Hi Vijay, I came across your portfolio and would like to discuss an opportunity with you!",
   // Analytics
   GA_TRACKING_ID: process.env.NEXT_PUBLIC_GA_ID || "G-GY8ENHWSSB",
 } as const;
