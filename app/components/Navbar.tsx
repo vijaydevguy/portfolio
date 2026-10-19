@@ -13,10 +13,18 @@ import {
 } from "framer-motion";
 import { CLOUDINARY_URLS } from "../assets";
 import { NAV_ITEMS } from "../common";
+import { useHeroData } from "../hooks/useHeroData";
+import { getCloudinaryUrl } from "../lib/cloudinary";
 
 export default function Navbar() {
+  const { data: heroData, loading } = useHeroData();
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+
+  // Dynamic Logo URL with Cloudinary fallback
+  const rawLogoSrc = heroData?.logoUrl || CLOUDINARY_URLS.logo;
+  const logoSrc = getCloudinaryUrl(rawLogoSrc);
+  const logoAlt = heroData?.logoText ? `${heroData.logoText} Logo` : "Vijay Kumar Logo";
 
   // Hide Navbar completely on admin pages
   if (pathname?.startsWith("/admin")) {
@@ -86,15 +94,16 @@ export default function Navbar() {
           }}
           className="pointer-events-auto fixed flex items-center justify-between px-6 sm:px-10 py-3.5 border border-zinc-200/60 bg-white/70 backdrop-blur-xl backdrop-saturate-150 transition-colors"
         >
-          {/* Left Side: Standalone Black Logo */}
+          {/* Left Side: Dynamic Logo */}
           <Link href="/" className="flex items-center group">
             <Image
-              src={CLOUDINARY_URLS.logo_black}
-              alt="Vijay Kumar Logo"
+              src={logoSrc}
+              alt={logoAlt}
               width={140}
               height={36}
-              className="h-8 w-auto object-cover transition-transform duration-200 select-none pointer-events-none"
+              className="h-8 w-auto object-contain transition-transform duration-200 select-none pointer-events-none"
               priority
+              unoptimized
             />
           </Link>
 
@@ -165,7 +174,7 @@ export default function Navbar() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed top-0 right-0 bottom-0 h-full w-[50%] md:w-[40%] bg-white/95 backdrop-blur-2xl shadow-2xl flex flex-col z-50 border-l border-zinc-200/80"
             >
-              {/* Sidebar Header: Black Logo Alone & Close Button */}
+              {/* Sidebar Header: Dynamic Logo & Close Button */}
               <div className="flex items-center justify-between p-5 border-b border-zinc-100/80">
                 <Link
                   href="/"
@@ -173,11 +182,12 @@ export default function Navbar() {
                   className="flex items-center"
                 >
                   <Image
-                    src={CLOUDINARY_URLS.logo_black}
-                    alt="Vijay Kumar Logo"
+                    src={logoSrc}
+                    alt={logoAlt}
                     width={110}
                     height={30}
                     className="h-7 w-auto object-contain"
+                    unoptimized
                   />
                 </Link>
 

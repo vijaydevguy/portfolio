@@ -7,6 +7,7 @@ import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import Pagination from "../../components/ui/Pagination";
+import MediaUploader from "../../components/ui/MediaUploader";
 
 interface UserProfile {
   id: string;
@@ -152,7 +153,82 @@ function AdminEditContent() {
       .finally(() => {
         setLoading(false);
       });
+
+    // Fetch existing Hero and Navbar Section data for editing
+    fetch(`${CONFIG.BACKEND_URL}/api/sections/hero`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setHeroForm({
+            logoText: json.data.logoText || "Vijay Kumar",
+            logoUrl: json.data.logoUrl || "",
+            titlePrefix: json.data.titlePrefix || "Software",
+            titleHighlight: json.data.titleHighlight || "Developer",
+            subtitle: json.data.subtitle || "",
+            heroImageUrl: json.data.heroImageUrl || "",
+            resumes: json.data.resumes && json.data.resumes.length > 0
+              ? json.data.resumes
+              : [{ label: "Download Resume", url: "", isPrimary: true }],
+            ctaContactText: json.data.ctaContactText || "Get in Touch",
+            ctaContactHref: json.data.ctaContactHref || "#contact",
+            isVisible: json.data.isVisible !== false,
+          });
+        }
+      })
+      .catch((err) => console.error("Error loading hero section data:", err));
   }, []);
+
+  // Hero section form state with full default prefill
+  const [heroForm, setHeroForm] = useState({
+    logoText: "Vijay Kumar",
+    logoUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/logo_black.webp",
+    titlePrefix: "Software",
+    titleHighlight: "Developer",
+    subtitle: "Crafting scalable, high-performance web applications and intuitive digital experiences.",
+    heroImageUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/hero_img.webp",
+    resumes: [
+      {
+        label: "Download Resume",
+        url: "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
+        isPrimary: true,
+      },
+    ],
+    ctaContactText: "Get in Touch",
+    ctaContactHref: "#contact",
+    isVisible: true,
+  });
+  const [savingHero, setSavingHero] = useState(false);
+  const [heroSaveMsg, setHeroSaveMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleSaveHero = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("admin_token");
+    if (!token) return;
+
+    setSavingHero(true);
+    setHeroSaveMsg(null);
+    try {
+      const res = await fetch(`${CONFIG.BACKEND_URL}/api/sections/hero`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(heroForm),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to update hero section");
+      }
+      setHeroSaveMsg({ type: "success", text: "Hero & Navbar settings saved successfully!" });
+      setTimeout(() => setHeroSaveMsg(null), 4000);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setHeroSaveMsg({ type: "error", text: error.message || "Failed to save settings." });
+    } finally {
+      setSavingHero(false);
+    }
+  };
 
   const fetchUsersList = async (
     targetPage = currentPage,
@@ -266,7 +342,7 @@ function AdminEditContent() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F8FAFC] flex relative overflow-x-hidden font-sans">
+    <div className="h-screen w-full bg-[#F8FAFC] flex relative overflow-hidden font-sans">
       {/* 1. Mobile Backdrop */}
       {isMobileOpen && (
         <div
@@ -275,9 +351,9 @@ function AdminEditContent() {
         />
       )}
 
-      {/* 2. Responsive Sidebar (Collapsible with smooth icon / label transition) */}
+      {/* 2. Responsive Sidebar (Permanently fixed unmovable on left, independent height) */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen bg-white border-r border-zinc-200/90 z-50 flex flex-col justify-between transition-all duration-300 ease-in-out select-none ${
+        className={`fixed lg:relative top-0 left-0 h-screen bg-white border-r border-zinc-200/90 z-50 flex flex-col justify-between transition-all duration-300 ease-in-out select-none flex-shrink-0 ${
           isMobileOpen ? "translate-x-0 w-64 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         } ${isCollapsed ? "lg:w-[76px]" : "lg:w-64"}`}
       >
@@ -418,8 +494,8 @@ function AdminEditContent() {
         </div>
       </aside>
 
-      {/* 3. Main Workspace Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* 3. Main Workspace Area: Independently scrollable right side */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         {/* Mobile Top Header */}
         <div className="lg:hidden w-full bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
           <button
@@ -438,7 +514,7 @@ function AdminEditContent() {
         </div>
 
         {/* Dynamic Canvas Container - Full Available Width Centered */}
-        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto flex-1">
+        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto flex-1 pb-16">
           {/* OPTION 1: EDIT SECTIONS (With Horizontal Tabs for all sections) */}
           {activeMenu === "sections" && (
             <div className="space-y-6">
@@ -478,24 +554,291 @@ function AdminEditContent() {
 
               {/* TAB CONTENT: HERO SECTION */}
               {activeTab === "hero" && (
-                <div className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+                <form onSubmit={handleSaveHero} className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs space-y-6">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100">
                     <div>
                       <h2 className="text-lg font-bold text-zinc-950 font-heading">
-                        Hero Section Settings
+                        Hero Section & Navbar Configuration
                       </h2>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Title, subtitle, resumes (capped at max 3), and visibility booleans.
+                        Customize your brand logo, primary tagline, hero description, and resume download links.
                       </p>
                     </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-[#1D4ED8] border border-blue-100">
-                      Active
-                    </span>
+
+                    {/* Section Visibility Switch */}
+                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-medium self-start sm:self-auto">
+                      <span className="text-zinc-700 font-semibold">Section Visibility:</span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={heroForm.isVisible}
+                        onClick={() => setHeroForm((prev) => ({ ...prev, isVisible: !prev.isVisible }))}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          heroForm.isVisible ? "bg-emerald-500" : "bg-zinc-300"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                            heroForm.isVisible ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-sm text-slate-600 py-3">
-                    Hero Section configuration form will be wired in the next step.
-                  </p>
-                </div>
+
+                  {/* Feedback Message */}
+                  {heroSaveMsg && (
+                    <div
+                      className={`p-3.5 rounded-xl text-xs font-semibold border ${
+                        heroSaveMsg.type === "success"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                          : "bg-rose-50 text-rose-800 border-rose-200"
+                      }`}
+                    >
+                      {heroSaveMsg.text}
+                    </div>
+                  )}
+
+                  {/* 1. Navbar Brand Settings */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider text-slate-400">
+                      1. Navbar Brand Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                      <div>
+                        <label className="form-label font-semibold text-zinc-900">Navbar Brand Text</label>
+                        <input
+                          type="text"
+                          value={heroForm.logoText}
+                          onChange={(e) => setHeroForm({ ...heroForm, logoText: e.target.value })}
+                          placeholder="Vijay Kumar"
+                          className="form-input bg-white"
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">Used as image alt-text and accessibility label</p>
+                      </div>
+
+                      {/* Brand Logo Media Uploader (User Folder: user_<id>/navbar/logo) */}
+                      <MediaUploader
+                        label="Navbar Brand Logo"
+                        section="navbar"
+                        category="logo"
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        currentValue={heroForm.logoUrl}
+                        onSelect={(val) => setHeroForm({ ...heroForm, logoUrl: val })}
+                        helperText="Upload transparent PNG, SVG, or WebP. Max 3 logos kept in storage."
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Hero Heading & Subtitle */}
+                  <div className="space-y-4 pt-4 border-t border-zinc-100">
+                    <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider text-slate-400">
+                      2. Hero Headline & Media
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="form-label font-semibold text-zinc-900">Headline Prefix</label>
+                        <input
+                          type="text"
+                          value={heroForm.titlePrefix}
+                          onChange={(e) => setHeroForm({ ...heroForm, titlePrefix: e.target.value })}
+                          placeholder="Software"
+                          className="form-input bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label font-semibold text-zinc-900">Headline Highlight (Blue Accent)</label>
+                        <input
+                          type="text"
+                          value={heroForm.titleHighlight}
+                          onChange={(e) => setHeroForm({ ...heroForm, titleHighlight: e.target.value })}
+                          placeholder="Developer"
+                          className="form-input bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-xs">
+                      <label className="form-label font-semibold text-zinc-900">Hero Subtitle</label>
+                      <textarea
+                        rows={3}
+                        value={heroForm.subtitle}
+                        onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
+                        placeholder="Crafting scalable, high-performance web applications..."
+                        className="form-input resize-none bg-white"
+                      />
+                    </div>
+
+                    {/* Hero Illustration Media Uploader (User Folder: user_<id>/hero/illustration) */}
+                    <MediaUploader
+                      label="Hero Illustration Image"
+                      section="hero"
+                      category="illustration"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      currentValue={heroForm.heroImageUrl}
+                      onSelect={(val) => setHeroForm({ ...heroForm, heroImageUrl: val })}
+                      helperText="Upload vector graphic or transparent illustration. Max 3 illustrations kept in storage."
+                    />
+                  </div>
+
+                  {/* 3. Resume Links (Max 3 with PDF upload capability) */}
+                  <div className="space-y-4 pt-4 border-t border-zinc-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider text-slate-400">
+                          3. Resume Downloads (Max 3 Allowed)
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Upload PDF resumes directly or enter external link. PDF link preview is generated automatically.
+                        </p>
+                      </div>
+
+                      {heroForm.resumes.length < 3 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setHeroForm((prev) => ({
+                              ...prev,
+                              resumes: [
+                                ...prev.resumes,
+                                { label: `Resume ${prev.resumes.length + 1}`, url: "", isPrimary: false },
+                              ],
+                            }))
+                          }
+                          className="btn-secondary !text-[11px] !py-1.5 !px-3 !rounded-lg"
+                        >
+                          + Add Resume
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      {heroForm.resumes.map((resume, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/90 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-zinc-700">Resume Slot #{idx + 1}</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = heroForm.resumes.map((r, i) => ({
+                                    ...r,
+                                    isPrimary: i === idx,
+                                  }));
+                                  setHeroForm({ ...heroForm, resumes: updated });
+                                }}
+                                className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${
+                                  resume.isPrimary
+                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                    : "bg-white text-zinc-600 border-zinc-200 hover:text-zinc-900"
+                                }`}
+                              >
+                                {resume.isPrimary ? "Primary" : "Set Primary"}
+                              </button>
+
+                              {heroForm.resumes.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = heroForm.resumes.filter((_, i) => i !== idx);
+                                    setHeroForm({ ...heroForm, resumes: updated });
+                                  }}
+                                  className="p-1 text-rose-500 hover:text-rose-700 rounded-lg hover:bg-rose-50"
+                                  title="Remove Resume"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <label className="form-label text-[11px]">Button Label</label>
+                              <input
+                                type="text"
+                                value={resume.label}
+                                onChange={(e) => {
+                                  const updated = [...heroForm.resumes];
+                                  updated[idx].label = e.target.value;
+                                  setHeroForm({ ...heroForm, resumes: updated });
+                                }}
+                                placeholder="Download Resume"
+                                className="form-input bg-white"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <MediaUploader
+                                label="Resume Document (Google Drive / Direct PDF Link)"
+                                section="resume"
+                                category={`slot_${idx + 1}`}
+                                accept="application/pdf"
+                                isPdf={true}
+                                hideDropzone={true}
+                                allowManualInput={true}
+                                currentValue={resume.url}
+                                onSelect={(val) => {
+                                  const updated = [...heroForm.resumes];
+                                  updated[idx].url = val;
+                                  setHeroForm({ ...heroForm, resumes: updated });
+                                }}
+                                helperText="Paste your public Google Drive download link or direct PDF URL."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Secondary CTA */}
+                  <div className="space-y-4 pt-4 border-t border-zinc-100">
+                    <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider text-slate-400">
+                      4. Contact CTA Button
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="form-label font-semibold text-zinc-900">Button Text</label>
+                        <input
+                          type="text"
+                          value={heroForm.ctaContactText}
+                          onChange={(e) => setHeroForm({ ...heroForm, ctaContactText: e.target.value })}
+                          placeholder="Get in Touch"
+                          className="form-input bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label font-semibold text-zinc-900">Button Target (Anchor or URL)</label>
+                        <input
+                          type="text"
+                          value={heroForm.ctaContactHref}
+                          onChange={(e) => setHeroForm({ ...heroForm, ctaContactHref: e.target.value })}
+                          placeholder="#contact"
+                          className="form-input bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Bottom Save Changes Action Button */}
+                  <div className="pt-6 border-t border-zinc-200 flex items-center justify-between">
+                    <p className="text-xs text-slate-500">
+                      Changes will reflect immediately on your portfolio website and Navbar.
+                    </p>
+
+                    <button
+                      type="submit"
+                      disabled={savingHero}
+                      className="btn-primary !text-sm !py-3 !px-7 !rounded-xl font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 cursor-pointer"
+                    >
+                      {savingHero ? "Saving Changes..." : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
               )}
 
               {/* TAB CONTENT: EXPERIENCE */}

@@ -60,15 +60,16 @@ export function getCloudinaryUrl(
 
   const transformString = transformations.join(",");
 
+  const isPdf = pathOrUrl.toLowerCase().endsWith(".pdf") || pathOrUrl.includes(".pdf");
+  const resourceType = pathOrUrl.includes("/raw/upload/") ? "raw" : "image";
+
   // Case 1: Already a full Cloudinary URL
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
-    if (pathOrUrl.includes("res.cloudinary.com") && transformString) {
-      // If no transformations yet in URL, inject before /v[0-9]+/ or upload/
+    if (pathOrUrl.includes("res.cloudinary.com") && transformString && !isPdf) {
       if (pathOrUrl.includes("/image/upload/")) {
         const parts = pathOrUrl.split("/image/upload/");
         const afterUpload = parts[1];
 
-        // Check if already transformed
         if (afterUpload.startsWith("v") || afterUpload.includes("/")) {
           return `${parts[0]}/image/upload/${transformString}/${afterUpload}`;
         }
@@ -80,5 +81,41 @@ export function getCloudinaryUrl(
   // Case 2: Clean up short relative path (e.g. "v1792239302/logo_white_4x_gns8yk" or "/v1792...")
   const cleanPath = pathOrUrl.replace(/^\/+/, "");
 
-  return `${CLOUDINARY_BASE_URL}/${CLOUD_NAME}/image/upload/${transformString}/${cleanPath}`;
+  // For PDFs, do not apply image format/quality transformations like f_auto,q_auto
+  if (isPdf) {
+    return `${CLOUDINARY_BASE_URL}/${CLOUD_NAME}/${resourceType}/upload/${cleanPath}`;
+  }
+
+  return transformString
+    ? `${CLOUDINARY_BASE_URL}/${CLOUD_NAME}/image/upload/${transformString}/${cleanPath}`
+    : `${CLOUDINARY_BASE_URL}/${CLOUD_NAME}/image/upload/${cleanPath}`;
+}
+
+/**
+ * Generates a direct forced-download Cloudinary URL with fl_attachment and proper filename
+ * ensuring the user's browser downloads a genuine .pdf file rather than raw stream or wrong extension.
+ */
+export function getCloudinaryDownloadUrl(pathOrUrl: string, customFilename?: string): string {
+  if (!pathOrUrl) return "";
+
+  // If already an external link (Google Drive, Dropbox, custom host, etc.), return as is
+  if (
+    pathOrUrl.startsWith("http://") ||
+    pathOrUrl.startsWith("https://")
+  ) {
+    if (!pathOrUrl.includes("res.cloudinary.com")) {
+      return pathOrUrl;
+    }
+  }
+
+  const cleanPath = pathOrUrl.replace(/^https?:\/\/[^/]+\/[^/]+\/(?:image|raw)\/upload\//, "").replace(/^\/+/, "");
+  const isPdf = pathOrUrl.toLowerCase().endsWith(".pdf") || pathOrUrl.includes(".pdf");
+  const resourceType = pathOrUrl.includes("/raw/upload/") ? "raw" : "image";
+  const filename = customFilename || (cleanPath.split("/").pop() || "document.pdf");
+  const cleanFilename = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+
+  // fl_attachment:filename forces attachment header with correct filename and .pdf extension
+  const attachmentFlag = `fl_attachment:${encodeURIComponent(cleanFilename.replace(/\.pdf$/, ""))}`;
+
+  return `${CONFIG.CLOUDINARY_BASE_URL}/${CONFIG.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload/${attachmentFlag}/${cleanPath}`;
 }
