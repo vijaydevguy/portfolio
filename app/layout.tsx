@@ -51,6 +51,7 @@ import { Suspense } from "react";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import Navbar from "./components/Navbar";
 import FloatingContactMenu from "./components/FloatingContactMenu";
+import LayoutWrapper from "./components/LayoutWrapper";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -63,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <GoogleAnalytics />
         </Suspense>
         <Navbar />
-        <div className=" pt-20">{children}</div>
+        <LayoutWrapper>{children}</LayoutWrapper>
         <FloatingContactMenu />
       </body>
     </html>

@@ -7,10 +7,17 @@ import { RiWhatsappFill, RiChatSmile3Line } from "react-icons/ri";
 import { FiPhoneCall } from "react-icons/fi";
 import { LuCalendarCheck } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
+import { usePathname } from "next/navigation";
 import { CONFIG } from "../common";
 
 export default function FloatingContactMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Hide FloatingContactMenu completely on admin pages
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   // Initialize Cal.com embed with portfolio branding (#1D4ED8)
   useEffect(() => {

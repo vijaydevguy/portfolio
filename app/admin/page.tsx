@@ -37,42 +37,57 @@ export default function AdminAuthPage() {
 
       {/* Main Card */}
       <div className="w-full sm:max-w-md bg-white border border-zinc-200/90 rounded-2xl shadow-sm p-6 sm:p-8">
-        {/* Server Success or Error Alerts */}
-        {serverError && (
-          <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
-            {serverError}
-          </div>
-        )}
-        {successMessage && (
-          <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium">
-            {successMessage}
-          </div>
-        )}
-
         <form onSubmit={formik.handleSubmit} className="space-y-1">
           {/* Optional Name Field (only shown during Sign Up) */}
           {isSignUp && (
-            <div className="form-group">
-              <label htmlFor="name" className="form-label">
-                Full Name <span className="text-slate-400 font-normal lowercase">(optional)</span>
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                placeholder="e.g. John Doe"
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                className={`form-input ${
-                  formik.touched.name && formik.errors.name ? "form-input-error" : ""
-                }`}
-              />
-              {formik.touched.name && formik.errors.name && (
-                <span className="form-error-msg">{formik.errors.name}</span>
-              )}
-            </div>
+            <>
+              <div className="form-group">
+                <label htmlFor="name" className="form-label">
+                  Full Name <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="e.g. John Doe"
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`form-input ${
+                    formik.touched.name && formik.errors.name ? "form-input-error" : ""
+                  }`}
+                />
+                {formik.touched.name && formik.errors.name && (
+                  <span className="form-error-msg">{formik.errors.name}</span>
+                )}
+              </div>
+
+              {/* Role Dropdown (admin / user) */}
+              <div className="form-group">
+                <label htmlFor="role" className="form-label">
+                  Account Role
+                </label>
+                <div className="relative">
+                  <select
+                    id="role"
+                    name="role"
+                    value={formik.values.role}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="form-input appearance-none pr-10 cursor-pointer bg-white"
+                  >
+                    <option value="admin">Admin (Full Control)</option>
+                    <option value="user">User (Standard Profile)</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-zinc-500">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Email Field */}
@@ -121,7 +136,7 @@ export default function AdminAuthPage() {
                 type="button"
                 onClick={togglePasswordVisibility}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-zinc-700 transition-colors p-1 rounded-md focus:outline-none"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-zinc-700 transition-colors p-1 rounded-md focus:outline-none cursor-pointer"
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -148,8 +163,22 @@ export default function AdminAuthPage() {
             )}
           </div>
 
+          {/* Zero-Jump Server Response Banner Container (Always reserves space below password) */}
+          <div className="min-h-[46px] flex items-center mb-1">
+            {serverError && (
+              <div className="w-full px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold leading-snug">
+                {serverError}
+              </div>
+            )}
+            {successMessage && (
+              <div className="w-full px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold leading-snug">
+                {successMessage}
+              </div>
+            )}
+          </div>
+
           {/* Submit Button */}
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="submit"
               disabled={isLoading}

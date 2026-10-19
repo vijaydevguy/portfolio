@@ -18,6 +18,11 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
+  // Hide Navbar completely on admin pages
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   // Framer Motion continuous scroll progress between 0px and 80px
   const { scrollY } = useScroll();
 

@@ -45,4 +45,7 @@ export const adminSignupSchema = Yup.object().shape({
   name: nameOptionalValidation,
   email: emailValidation,
   password: passwordValidation,
+  role: Yup.string()
+    .oneOf(["admin", "user"], "Invalid role selected")
+    .default("admin"),
 });

@@ -7,6 +7,7 @@ export interface AdminAuthFormValues {
   name: string;
   email: string;
   password: string;
+  role: "admin" | "user";
 }
 
 export function useAdminAuth() {
@@ -21,6 +22,7 @@ export function useAdminAuth() {
       name: "",
       email: "",
       password: "",
+      role: "admin",
     },
     validationSchema: isSignUp ? adminSignupSchema : adminLoginSchema,
     onSubmit: async (values) => {
@@ -34,6 +36,7 @@ export function useAdminAuth() {
             name: values.name.trim() || undefined,
             email: values.email.trim(),
             password: values.password,
+            role: values.role,
           }
         : {
             email: values.email.trim(),
@@ -41,13 +44,29 @@ export function useAdminAuth() {
           };
 
       try {
-        const response = await fetch(`${CONFIG.BACKEND_URL}${endpoint}`, {
+        const rawBackendUrl = (CONFIG.BACKEND_URL || "http://localhost:5000")
+          .replace(/["';]/g, "")
+          .replace(/\/+$/, "");
+
+        const response = await fetch(`${rawBackendUrl}${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        let data;
+
+        if (contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          const text = await response.text();
+          throw new Error(
+            response.status === 404
+              ? "Backend API endpoint not found. Ensure backend server is running on port 5000."
+              : `Server returned non-JSON response (${response.status}). ${text.slice(0, 100)}`,
+          );
+        }
 
         if (!response.ok || !data.success) {
           throw new Error(
@@ -55,27 +74,23 @@ export function useAdminAuth() {
           );
         }
 
-        if (isSignUp) {
-          setSuccessMessage(
-            "Account created successfully! You can now log in.",
-          );
-          setIsSignUp(false);
-          formik.resetForm();
-        } else {
-          // Store token in localStorage
-          if (data.token) {
-            localStorage.setItem("admin_token", data.token);
-          }
-          // Store user info including isFirstTime flag if provided
-          if (data.user) {
-            localStorage.setItem("admin_user", JSON.stringify(data.user));
-          }
-
-          setSuccessMessage("Login successful! Redirecting to dashboard...");
-          setTimeout(() => {
-            window.location.href = "/admin/edit";
-          }, 800);
+        // Auto-login upon registration or regular login
+        if (data.token) {
+          localStorage.setItem("admin_token", data.token);
         }
+        if (data.user) {
+          localStorage.setItem("admin_user", JSON.stringify(data.user));
+        }
+
+        setSuccessMessage(
+          isSignUp
+            ? "Account created successfully! Redirecting to dashboard..."
+            : "Login successful! Redirecting to dashboard...",
+        );
+
+        setTimeout(() => {
+          window.location.href = "/admin/edit";
+        }, 600);
       } catch (err: unknown) {
         const error = err as Error;
         setServerError(
