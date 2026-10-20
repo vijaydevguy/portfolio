@@ -9,10 +9,12 @@ import { LuCalendarCheck } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { CONFIG } from "../common";
+import { useCommonSettings } from "../hooks/useCommonSettings";
 
 export default function FloatingContactMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { settings } = useCommonSettings();
 
   // Hide FloatingContactMenu completely on admin pages
   if (pathname?.startsWith("/admin")) {
@@ -22,7 +24,7 @@ export default function FloatingContactMenu() {
   // Initialize Cal.com embed with portfolio branding (#1D4ED8)
   useEffect(() => {
     (async function () {
-      const cal = await getCalApi({ namespace: CONFIG.CAL_COM_NAMESPACE });
+      const cal = await getCalApi({ namespace: settings.calComNamespace || CONFIG.CAL_COM_NAMESPACE });
       cal("ui", {
         theme: "light",
         styles: {
@@ -32,104 +34,119 @@ export default function FloatingContactMenu() {
         layout: "month_view",
       });
     })();
-  }, []);
+  }, [settings.calComNamespace]);
 
   // WhatsApp click handler with prefilled message
   const handleWhatsAppClick = () => {
     const encodedMessage = encodeURIComponent(
-      CONFIG.WHATSAPP_PREFILLED_MESSAGE,
+      settings.whatsappPrefilledMessage || CONFIG.WHATSAPP_PREFILLED_MESSAGE,
     );
-    const whatsappUrl = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/${settings.whatsappNumber || CONFIG.WHATSAPP_NUMBER}?text=${encodedMessage}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     setIsOpen(false);
   };
 
   // Direct Phone Call handler
   const handlePhoneClick = () => {
-    window.location.href = `tel:${CONFIG.PHONE_NUMBER}`;
+    window.location.href = `tel:${settings.phoneNumber || CONFIG.PHONE_NUMBER}`;
     setIsOpen(false);
   };
 
+  const hasAnyChannel =
+    settings.isWhatsappPublished !== false ||
+    settings.isPhonePublished !== false ||
+    settings.isCalComPublished !== false;
+
+  if (!hasAnyChannel) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto select-none">
-      {/* Expanded: 3 Separate Clean Cards */}
+      {/* Expanded: Contact Channel Cards */}
       <AnimatePresence>
         {isOpen && (
           <div className="mb-3 flex flex-col items-end space-y-2 font-heading">
             {/* Card 1: WhatsApp Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              transition={{ duration: 0.16, delay: 0.06 }}
-            >
-              <button
-                type="button"
-                onClick={handleWhatsAppClick}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+            {settings.isWhatsappPublished !== false && (
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.16, delay: 0.06 }}
               >
-                <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
-                  <RiWhatsappFill className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-zinc-900 group-hover:text-emerald-600 transition-colors">
-                    WhatsApp Chat
-                  </p>
-                </div>
-              </button>
-            </motion.div>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppClick}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+                    <RiWhatsappFill className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-zinc-900 group-hover:text-emerald-600 transition-colors">
+                      WhatsApp Chat
+                    </p>
+                  </div>
+                </button>
+              </motion.div>
+            )}
 
             {/* Card 2: Phone Call Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              transition={{ duration: 0.16, delay: 0.03 }}
-            >
-              <button
-                type="button"
-                onClick={handlePhoneClick}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+            {settings.isPhonePublished !== false && (
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.16, delay: 0.03 }}
               >
-                <div className="w-8 h-8 rounded-lg bg-[#1D4ED8] text-white flex items-center justify-center flex-shrink-0">
-                  <FiPhoneCall className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-zinc-900 group-hover:text-[#1D4ED8] transition-colors">
-                    Direct Call
-                  </p>
-                  <p className="text-[11px] text-slate-500 font-sans truncate">
-                    {CONFIG.PHONE_DISPLAY}
-                  </p>
-                </div>
-              </button>
-            </motion.div>
+                <button
+                  type="button"
+                  onClick={handlePhoneClick}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#1D4ED8] text-white flex items-center justify-center flex-shrink-0">
+                    <FiPhoneCall className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-zinc-900 group-hover:text-[#1D4ED8] transition-colors">
+                      Direct Call
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-sans truncate">
+                      {settings.phoneDisplay || CONFIG.PHONE_DISPLAY}
+                    </p>
+                  </div>
+                </button>
+              </motion.div>
+            )}
 
             {/* Card 3: Cal.com Meeting Booking Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              transition={{ duration: 0.16 }}
-            >
-              <button
-                type="button"
-                data-cal-namespace={CONFIG.CAL_COM_NAMESPACE}
-                data-cal-link={CONFIG.CAL_COM_LINK}
-                data-cal-config='{"layout":"month_view"}'
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+            {settings.isCalComPublished !== false && (
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.16 }}
               >
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0">
-                  <LuCalendarCheck className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors">
-                    Cal.com Meeting
-                  </p>
-                </div>
-              </button>
-            </motion.div>
+                <button
+                  type="button"
+                  data-cal-namespace={settings.calComNamespace || CONFIG.CAL_COM_NAMESPACE}
+                  data-cal-link={settings.calComLink || CONFIG.CAL_COM_LINK}
+                  data-cal-config='{"layout":"month_view"}'
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0">
+                    <LuCalendarCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                      Cal.com Meeting
+                    </p>
+                  </div>
+                </button>
+              </motion.div>
+            )}
           </div>
         )}
       </AnimatePresence>

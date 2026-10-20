@@ -20,6 +20,7 @@ import {
   LuSearch,
   LuX,
   LuArrowLeft,
+  LuTrash2,
 } from "react-icons/lu";
 
 export interface ContactMessageData {
@@ -744,7 +745,15 @@ export default function AdminContactManager({
                           </button>
                         )}
 
-                        {/* 4. Delete button is accessible inside message modal view */}
+                        {/* 4. Delete Permanently Button */}
+                        <button
+                          type="button"
+                          onClick={() => setMessageToDelete(msg)}
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-full border border-rose-300 text-rose-500 hover:bg-rose-500 hover:text-white transition-all cursor-pointer shadow-2xs"
+                          title="Delete Permanently"
+                        >
+                          <LuTrash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </td>
                   </tr>

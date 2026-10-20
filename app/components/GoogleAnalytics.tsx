@@ -3,22 +3,28 @@
 import { useEffect } from "react";
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { GA_TRACKING_ID, isDevelopment, trackPageView, trackEvent } from "../lib/gtag";
+import { isDevelopment, trackPageView, trackEvent } from "../lib/gtag";
+import { useCommonSettings } from "../hooks/useCommonSettings";
+import { CONFIG } from "../common";
 
 export default function GoogleAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { settings } = useCommonSettings();
 
-  // Track page views on route changes (strictly not in localhost)
+  const gaId = settings.googleAnalyticsId || CONFIG.GA_TRACKING_ID;
+  const isEnabled = settings.isAnalyticsPublished !== false && Boolean(gaId);
+
+  // Track page views on route changes (strictly not in localhost and only if published)
   useEffect(() => {
-    if (isDevelopment()) return;
+    if (isDevelopment() || !isEnabled) return;
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
     trackPageView(url);
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, isEnabled]);
 
   // Global listener for automatic monitoring of clicks on buttons, links, tags, and sections
   useEffect(() => {
-    if (isDevelopment()) return;
+    if (isDevelopment() || !isEnabled) return;
 
     const handleGlobalClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
@@ -96,10 +102,10 @@ export default function GoogleAnalytics() {
       document.removeEventListener("click", handleGlobalClick, { capture: true });
       observer.disconnect();
     };
-  }, []);
+  }, [isEnabled]);
 
-  // In development/localhost, do NOT load the gtag scripts at all
-  if (process.env.NODE_ENV === "development") {
+  // In development/localhost or if analytics unpublished, do NOT load the gtag scripts at all
+  if (process.env.NODE_ENV === "development" || !isEnabled) {
     return null;
   }
 
@@ -107,7 +113,7 @@ export default function GoogleAnalytics() {
     <>
       <Script
         strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
       />
       <Script
         id="google-analytics-init"
@@ -119,7 +125,7 @@ export default function GoogleAnalytics() {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA_TRACKING_ID}', {
+              gtag('config', '${gaId}', {
                 page_path: window.location.pathname,
                 send_page_view: true
               });

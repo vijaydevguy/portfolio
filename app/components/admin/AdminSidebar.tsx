@@ -12,6 +12,7 @@ import {
   LuArrowRight,
   LuLogOut,
   LuX,
+  LuSlidersHorizontal,
 } from "react-icons/lu";
 
 interface UserProfile {
@@ -23,7 +24,7 @@ interface UserProfile {
 
 interface AdminSidebarProps {
   user: UserProfile | null;
-  activeMenu?: "sections" | "contact" | "users";
+  activeMenu?: "sections" | "contact" | "settings" | "users";
   onNavigateSections?: (tab?: string) => void;
   onNavigateUsers?: () => void;
   isMobileOpen: boolean;
@@ -47,9 +48,11 @@ export default function AdminSidebar({
     activeMenu ||
     (pathname?.startsWith("/admin/contact")
       ? "contact"
-      : pathname?.startsWith("/admin/edit")
-        ? "sections"
-        : "sections");
+      : pathname?.startsWith("/admin/settings")
+        ? "settings"
+        : pathname?.startsWith("/admin/edit")
+          ? "sections"
+          : "sections");
 
   const executeLogout = () => {
     localStorage.removeItem("admin_token");
@@ -173,6 +176,20 @@ export default function AdminSidebar({
           >
             <LuMail className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="truncate">Contact Inquiries</span>}
+          </Link>
+
+          {/* Option 3: Common Settings (Cal.com, Phone, Email, WhatsApp) */}
+          <Link
+            href="/admin/settings"
+            title={isCollapsed ? "Common Settings" : undefined}
+            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
+              currentMenu === "settings"
+                ? "bg-blue-50 text-[#1D4ED8] shadow-xs"
+                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+            } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
+          >
+            <LuSlidersHorizontal className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span className="truncate">Common Settings</span>}
           </Link>
 
           {/* Option 3: Users Management (Admin Only) */}
