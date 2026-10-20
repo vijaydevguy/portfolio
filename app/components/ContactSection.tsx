@@ -316,35 +316,66 @@ export default function ContactSection() {
                       )}
                     </div>
 
-                    {/* Reason Field */}
-                    <div className="relative pb-5">
-                      <label
-                        htmlFor="reason"
-                        className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5"
-                      >
-                        Purpose <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        id="reason"
-                        name="reason"
-                        value={formik.values.reason}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full px-4 py-3 rounded-xl border border-zinc-200 bg-zinc-50/40 text-sm font-medium text-zinc-900 focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                      >
-                        {reasons.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
-                        ))}
-                      </select>
-                      {formik.touched.reason && formik.errors.reason && (
-                        <p className="absolute bottom-0 left-0 text-xs text-rose-600 font-medium whitespace-nowrap">
-                          {formik.errors.reason}
-                        </p>
-                      )}
+                      {/* Reason Field */}
+                      <div className="relative pb-5">
+                        <label
+                          htmlFor="reason"
+                          className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5"
+                        >
+                          Purpose <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          id="reason"
+                          name="reason"
+                          value={formik.values.reason}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          className="w-full px-4 py-3 rounded-xl border border-zinc-200 bg-zinc-50/40 text-sm font-medium text-zinc-900 focus:bg-white focus:border-[#1D4ED8] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                        >
+                          {reasons.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                        {formik.touched.reason && formik.errors.reason && (
+                          <p className="absolute bottom-0 left-0 text-xs text-rose-600 font-medium whitespace-nowrap">
+                            {formik.errors.reason}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+
+                    {/* Conditional Custom Reason Input (When "Other" is selected) */}
+                    {formik.values.reason === "Other" && (
+                      <div className="relative pb-5 animate-in fade-in slide-in-from-top-2 duration-150">
+                        <label
+                          htmlFor="customReason"
+                          className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5"
+                        >
+                          Please Specify Your Purpose <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          id="customReason"
+                          name="customReason"
+                          type="text"
+                          placeholder="e.g. Speaking invitation, Podcast, Mentor request..."
+                          value={formik.values.customReason || ""}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          className={`form-input bg-zinc-50/40 focus:bg-white ${
+                            formik.touched.customReason && formik.errors.customReason
+                              ? "form-input-error"
+                              : ""
+                          }`}
+                        />
+                        {formik.touched.customReason && formik.errors.customReason && (
+                          <p className="absolute bottom-0 left-0 text-xs text-rose-600 font-medium whitespace-nowrap">
+                            {formik.errors.customReason}
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                   {/* 3. Message Field (Required) with strict min-h, max-h, and character count */}
                   <div className="relative pb-5">

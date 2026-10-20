@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { CONFIG } from "../../common";
 import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
@@ -11,6 +12,7 @@ import MediaUploader from "../../components/ui/MediaUploader";
 import AdminProjectsManager from "../../components/admin/AdminProjectsManager";
 import AdminSkillsManager from "../../components/admin/AdminSkillsManager";
 import AdminExperienceManager from "../../components/admin/AdminExperienceManager";
+import AdminSidebar from "../../components/admin/AdminSidebar";
 import { useDebounce } from "../../hooks/useDebounce";
 
 interface UserProfile {
@@ -27,14 +29,13 @@ interface UserProfile {
 type SidebarMenu = "sections" | "users";
 
 // Sub-tabs under the "Edit Sections" page
-type ContentTab = "hero" | "experience" | "projects" | "skills" | "contact";
+type ContentTab = "hero" | "experience" | "projects" | "skills";
 
 const CONTENT_TABS: { key: ContentTab; label: string; icon: string }[] = [
   { key: "hero", label: "Hero Section", icon: "👤" },
   { key: "experience", label: "Experience & Education", icon: "💼" },
   { key: "projects", label: "Selected Projects", icon: "🚀" },
   { key: "skills", label: "Skills & Tech", icon: "⚡" },
-  { key: "contact", label: "Contact Inquiries", icon: "📬" },
 ];
 
 export default function AdminEditPage() {
@@ -363,148 +364,15 @@ function AdminEditContent() {
         />
       )}
 
-      {/* 2. Responsive Sidebar (Permanently fixed unmovable on left, independent height) */}
-      <aside
-        className={`fixed lg:relative top-0 left-0 h-screen bg-white border-r border-zinc-200/90 z-50 flex flex-col justify-between transition-all duration-300 ease-in-out select-none flex-shrink-0 ${
-          isMobileOpen ? "translate-x-0 w-64 shadow-2xl" : "-translate-x-full lg:translate-x-0"
-        } ${isCollapsed ? "lg:w-[76px]" : "lg:w-64"}`}
-      >
-        {/* Sidebar Top: Logo/Brand & Toggle Button */}
-        <div className="p-3.5 border-b border-zinc-100 min-h-[64px] flex items-center">
-          {isCollapsed ? (
-            /* COLLAPSED VIEW: Perfectly centered expand button */
-            <div className="w-full flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(false)}
-                title="Expand Sidebar"
-                className="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-blue-50 text-zinc-600 hover:text-[#1D4ED8] flex items-center justify-center transition-all cursor-pointer shadow-xs group"
-              >
-                <svg
-                  className="w-5 h-5 transform group-hover:scale-110 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            /* EXPANDED VIEW: Brand Icon + Title + Collapse Chevron Button */
-            <div className="w-full flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-[#1D4ED8] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
-                  V
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-zinc-950 font-heading truncate">
-                    Admin Panel
-                  </span>
-                  <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider truncate">
-                    {user?.role === "admin" ? "Super Admin" : "User"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Desktop Collapse Trigger */}
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(true)}
-                title="Collapse Sidebar"
-                className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer flex-shrink-0"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-              </button>
-
-              {/* Mobile Drawer Close */}
-              <button
-                type="button"
-                onClick={() => setIsMobileOpen(false)}
-                className="lg:hidden p-1.5 rounded-lg text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar Nav: Only 2 main clean options */}
-        <nav className="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
-          {/* Option 1: Edit Sections */}
-          <button
-            type="button"
-            onClick={() => {
-              updateNavigation("sections");
-              setIsMobileOpen(false);
-            }}
-            title={isCollapsed ? "Edit Sections" : undefined}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-              activeMenu === "sections"
-                ? "bg-blue-50 text-[#1D4ED8] shadow-xs"
-                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
-            } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
-          >
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-            </svg>
-            {!isCollapsed && <span className="truncate">Edit Sections</span>}
-          </button>
-
-          {/* Option 2: Users Management (Visible only if Admin) */}
-          {user?.role === "admin" && (
-            <button
-              type="button"
-              onClick={() => {
-                updateNavigation("users");
-                setIsMobileOpen(false);
-              }}
-              title={isCollapsed ? "Users Management" : undefined}
-              className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                activeMenu === "users"
-                  ? "bg-blue-50 text-[#1D4ED8] shadow-xs"
-                  : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
-              } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
-            >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-              </svg>
-              {!isCollapsed && <span className="truncate">Users & Roles</span>}
-            </button>
-          )}
-        </nav>
-
-        {/* Sidebar Bottom: User Card & Modern Logout Button */}
-        <div className="p-3 border-t border-zinc-100 space-y-2">
-          {!isCollapsed && (
-            <div className="px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200/70 text-xs">
-              <p className="font-semibold text-zinc-900 truncate">{user?.name || "Vijay Kumar"}</p>
-              <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
-            </div>
-          )}
-
-          {/* Modern Clean Logout Button with Confirmation Dialog */}
-          <button
-            type="button"
-            onClick={() => setShowLogoutConfirm(true)}
-            title={isCollapsed ? "Sign Out" : undefined}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50/60 hover:bg-rose-100/80 border border-rose-200/70 transition-all cursor-pointer ${
-              isCollapsed ? "justify-center" : "justify-center"
-            }`}
-          >
-            {/* Modern Power/Sign-Out Icon */}
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-            </svg>
-            {!isCollapsed && <span>Sign Out</span>}
-          </button>
-        </div>
-      </aside>
+      {/* Unified Responsive Admin Sidebar */}
+      <AdminSidebar
+        user={user}
+        activeMenu={activeMenu === "users" ? "users" : "sections"}
+        onNavigateSections={(tab) => updateNavigation("sections", tab as any)}
+        onNavigateUsers={() => updateNavigation("users")}
+        isMobileOpen={isMobileOpen}
+        setIsMobileOpen={setIsMobileOpen}
+      />
 
       {/* 3. Main Workspace Area: Independently scrollable right side */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
@@ -861,18 +729,6 @@ function AdminEditContent() {
 
               {/* TAB CONTENT: SKILLS */}
               {activeTab === "skills" && <AdminSkillsManager />}
-
-              {/* TAB CONTENT: CONTACT */}
-              {activeTab === "contact" && (
-                <div className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs">
-                  <h2 className="text-lg font-bold text-zinc-950 font-heading mb-1">
-                    Contact Inquiries
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Review messages submitted via the portfolio contact form.
-                  </p>
-                </div>
-              )}
             </div>
           )}
 

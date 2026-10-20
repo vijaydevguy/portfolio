@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { CONFIG } from "../common";
 import { nameValidation, emailValidation } from "../lib/validations";
 import {
   parsePhoneNumber,
@@ -20,6 +21,7 @@ export interface ContactFormValues {
   countryCode: string; // e.g. "+91", "+1"
   phone: string; // national number only (e.g. "9876543210")
   reason: string;
+  customReason?: string;
   message: string;
 }
 
@@ -82,6 +84,7 @@ const initialValues: ContactFormValues = {
   countryCode: "+91",
   phone: "",
   reason: "Hiring / Full-Time Role",
+  customReason: "",
   message: "",
 };
 
@@ -92,6 +95,7 @@ export const REACH_OUT_REASONS = [
   "UI / UX Design Consultation",
   "Technical Advisory",
   "General Inquiry",
+  "Other",
 ] as const;
 
 export function useContactForm() {
@@ -162,10 +166,16 @@ export function useContactForm() {
         },
       ),
     reason: Yup.string().required("Please select a reason"),
+    customReason: Yup.string().when("reason", {
+      is: "Other",
+      then: (schema) =>
+        schema.trim().required("Please specify your reason for reaching out"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
     message: Yup.string()
       .trim()
       .min(10, "Minimum 10 characters required")
-      .max(2000, "Maximum 2000 characters exceeded")
+      .max(3000, "Maximum 3000 characters exceeded")
       .required("Message is required"),
   });
 
@@ -177,6 +187,11 @@ export function useContactForm() {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       setSubmitError(null);
       try {
+        const finalReason =
+          values.reason === "Other" && values.customReason?.trim()
+            ? `Other: ${values.customReason.trim()}`
+            : values.reason;
+
         // Backend Payload separates countryCode and phone cleanly:
         const payload = {
           name: values.name,
@@ -186,19 +201,29 @@ export function useContactForm() {
           fullPhoneNumber: values.phone
             ? `${values.countryCode}${values.phone}`
             : null,
-          reason: values.reason,
+          reason: finalReason,
           message: values.message,
         };
 
-        console.log("Submitting contact payload to backend:", payload);
+        const res = await fetch(`${CONFIG.BACKEND_URL}/api/contact`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-        // Simulated network latency
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || "Failed to send message");
+        }
 
         setIsSubmitted(true);
         resetForm();
-      } catch {
-        setSubmitError("Failed to send message. Please try again.");
+      } catch (err: any) {
+        setSubmitError(
+          err.message || "Failed to send message. Please check your connection and try again.",
+        );
       } finally {
         setSubmitting(false);
       }
