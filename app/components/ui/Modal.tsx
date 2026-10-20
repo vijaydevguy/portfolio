@@ -66,10 +66,10 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative bg-white rounded-2xl w-full ${maxWidthClass} p-6 shadow-2xl border border-zinc-200/90 z-10 animate-in zoom-in-95 duration-200`}
+        className={`relative bg-white rounded-2xl w-full ${maxWidthClass} max-h-[90vh] flex flex-col shadow-2xl border border-zinc-200/90 z-10 animate-in zoom-in-95 duration-200 overflow-hidden`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-zinc-100">
+        <div className="flex items-center justify-between p-5 sm:p-6 pb-3.5 border-b border-zinc-100 flex-shrink-0">
           <h3
             id="modal-title"
             className="text-base font-bold text-zinc-950 font-heading"
@@ -98,8 +98,10 @@ export default function Modal({
           </button>
         </div>
 
-        {/* Content Body */}
-        <div className="pt-4">{children}</div>
+        {/* Content Body with internal scrolling */}
+        <div className="p-5 sm:p-6 pt-4 overflow-y-auto flex-1 overscroll-contain">
+          {children}
+        </div>
       </div>
     </div>
   );

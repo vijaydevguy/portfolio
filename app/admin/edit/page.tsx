@@ -10,6 +10,7 @@ import Pagination from "../../components/ui/Pagination";
 import MediaUploader from "../../components/ui/MediaUploader";
 import AdminProjectsManager from "../../components/admin/AdminProjectsManager";
 import AdminSkillsManager from "../../components/admin/AdminSkillsManager";
+import AdminExperienceManager from "../../components/admin/AdminExperienceManager";
 import { useDebounce } from "../../hooks/useDebounce";
 
 interface UserProfile {
@@ -853,16 +854,7 @@ function AdminEditContent() {
               )}
 
               {/* TAB CONTENT: EXPERIENCE */}
-              {activeTab === "experience" && (
-                <div className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs">
-                  <h2 className="text-lg font-bold text-zinc-950 font-heading mb-1">
-                    Work Experience & Education
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Manage companies, positions, periods, and accomplishments.
-                  </p>
-                </div>
-              )}
+              {activeTab === "experience" && <AdminExperienceManager />}
 
               {/* TAB CONTENT: PROJECTS */}
               {activeTab === "projects" && <AdminProjectsManager />}

@@ -1,21 +1,26 @@
-interface ExperienceItem {
-  id: string;
+export interface ExperienceItem {
+  id?: string;
+  _id?: string;
   role: string;
   company: string;
   type: string;
   period?: string;
   duration?: string;
   location?: string;
-  description: string[];
+  description: string | string[];
+  order?: number;
+  isVisible?: boolean;
 }
 
-interface EducationItem {
+export interface EducationItem {
+  _id?: string;
   degree: string;
   field: string;
   institution: string;
   location: string;
   graduated: string;
   score: string;
+  isVisible?: boolean;
 }
 
 export const WORK_EXPERIENCE: ExperienceItem[] = [
