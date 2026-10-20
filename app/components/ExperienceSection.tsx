@@ -46,7 +46,43 @@ export default function ExperienceSection() {
 
         {/* Experience Timeline */}
         <div className="max-w-4xl mx-auto space-y-6">
-          {displayExperiences.length > 0 ? (
+          {loading ? (
+            <div className="relative border-l-2 border-zinc-200 ml-4 sm:ml-8 pl-6 sm:pl-10 space-y-8 animate-pulse">
+              {[1, 2].map((idx) => (
+                <div key={idx} className="relative">
+                  <span className="absolute -left-[31px] sm:-left-[47px] top-3 w-3.5 h-3.5 rounded-full bg-zinc-300 border-4 border-white shadow-xs" />
+                  <div className="p-6 sm:p-7 rounded-2xl border border-zinc-200/80 bg-white space-y-4 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="space-y-2">
+                        <div className="h-5 bg-zinc-200 rounded-lg w-48" />
+                        <div className="h-4 bg-zinc-100 rounded-md w-32" />
+                      </div>
+                      <div className="h-6 bg-zinc-100 rounded-full w-28" />
+                    </div>
+                    <div className="space-y-2 pt-1">
+                      <div className="h-3.5 bg-zinc-100 rounded w-full" />
+                      <div className="h-3.5 bg-zinc-100 rounded w-5/6" />
+                      <div className="h-3.5 bg-zinc-100 rounded w-4/6" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {/* Education skeleton card */}
+              <div className="pt-6">
+                <div className="p-6 sm:p-8 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-200 flex-shrink-0" />
+                    <div className="space-y-2 text-center sm:text-left w-full sm:w-auto">
+                      <div className="h-4 bg-zinc-200 rounded w-24 mx-auto sm:mx-0" />
+                      <div className="h-5 bg-zinc-200 rounded w-56 mx-auto sm:mx-0" />
+                      <div className="h-3.5 bg-zinc-100 rounded w-40 mx-auto sm:mx-0" />
+                    </div>
+                  </div>
+                  <div className="h-8 bg-zinc-200 rounded-full w-24" />
+                </div>
+              </div>
+            </div>
+          ) : displayExperiences.length > 0 ? (
             <div className="relative border-l-2 border-zinc-200 ml-4 sm:ml-8 pl-6 sm:pl-10 space-y-8">
               {displayExperiences.map((exp, index) => (
                 <motion.div
@@ -111,11 +147,11 @@ export default function ExperienceSection() {
                 </motion.div>
               ))}
             </div>
-          ) : !loading ? (
+          ) : (
             <div className="text-center py-8 text-slate-400 text-xs">
               No work experiences published yet.
             </div>
-          ) : null}
+          )}
 
           {/* Education Highlight Card(s) (Supports 1 or more educations) */}
           {displayEducations.filter((edu) => edu.isVisible !== false).length > 0 && (

@@ -123,44 +123,71 @@ export default function SkillsSection() {
         />
       </div>
 
-      {/* 2-Row Smooth Marquee with react-fast-marquee */}
-      <div className="relative w-full space-y-8 py-6">
-        {/* Left & Right gradient fade masks matching pure white page background */}
-        <div className="pointer-events-none absolute left-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-r from-white to-transparent z-20" />
-        <div className="pointer-events-none absolute right-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-l from-white to-transparent z-20" />
-
-        {/* Row 1: Left to Right (direction="right") */}
-        <div className="overflow-visible py-6">
-          <Marquee
-            direction="right"
-            speed={45}
-            pauseOnHover={true}
-            gradient={false}
-            autoFill={true}
-            className="overflow-visible !overflow-visible"
-          >
-            {row1.map((skill, index) => (
-              <SkillChip key={`${skill.name}-${index}`} skill={skill} />
+      {/* 2-Row Smooth Marquee with react-fast-marquee or Skeleton */}
+      {loading ? (
+        <div className="relative w-full space-y-8 py-6 animate-pulse">
+          <div className="pointer-events-none absolute left-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-r from-white to-transparent z-20" />
+          <div className="pointer-events-none absolute right-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-l from-white to-transparent z-20" />
+          <div className="flex gap-6 sm:gap-10 justify-center overflow-hidden py-4">
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <div
+                key={n}
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-100 flex items-center justify-center flex-shrink-0"
+              >
+                <div className="w-12 h-12 bg-zinc-200/80 rounded-xl" />
+              </div>
             ))}
-          </Marquee>
-        </div>
-
-        {/* Row 2: Right to Left (direction="left") */}
-        <div className="overflow-visible py-6">
-          <Marquee
-            direction="left"
-            speed={45}
-            pauseOnHover={true}
-            gradient={false}
-            autoFill={true}
-            className="overflow-visible !overflow-visible"
-          >
-            {row2.map((skill, index) => (
-              <SkillChip key={`${skill.name}-${index}`} skill={skill} />
+          </div>
+          <div className="flex gap-6 sm:gap-10 justify-center overflow-hidden py-4">
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+              <div
+                key={n}
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-100 flex items-center justify-center flex-shrink-0"
+              >
+                <div className="w-12 h-12 bg-zinc-200/80 rounded-xl" />
+              </div>
             ))}
-          </Marquee>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative w-full space-y-8 py-6">
+          {/* Left & Right gradient fade masks matching pure white page background */}
+          <div className="pointer-events-none absolute left-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-r from-white to-transparent z-20" />
+          <div className="pointer-events-none absolute right-0 inset-y-0 w-20 sm:w-36 bg-gradient-to-l from-white to-transparent z-20" />
+
+          {/* Row 1: Left to Right (direction="right") */}
+          <div className="overflow-visible py-6">
+            <Marquee
+              direction="right"
+              speed={45}
+              pauseOnHover={true}
+              gradient={false}
+              autoFill={true}
+              className="overflow-visible !overflow-visible"
+            >
+              {row1.map((skill, index) => (
+                <SkillChip key={`${skill.name}-${index}`} skill={skill} />
+              ))}
+            </Marquee>
+          </div>
+
+          {/* Row 2: Right to Left (direction="left") */}
+          <div className="overflow-visible py-6">
+            <Marquee
+              direction="left"
+              speed={45}
+              pauseOnHover={true}
+              gradient={false}
+              autoFill={true}
+              className="overflow-visible !overflow-visible"
+            >
+              {row2.map((skill, index) => (
+                <SkillChip key={`${skill.name}-${index}`} skill={skill} />
+              ))}
+            </Marquee>
+          </div>
+        </div>
+      )}
 
       {/* Helpful hover indicator */}
       <div className="text-center mt-6">

@@ -14,6 +14,7 @@ import AdminSkillsManager from "../../components/admin/AdminSkillsManager";
 import AdminExperienceManager from "../../components/admin/AdminExperienceManager";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import { useDebounce } from "../../hooks/useDebounce";
+import { LuTrash2, LuRefreshCw } from "react-icons/lu";
 
 interface UserProfile {
   id: string;
@@ -166,8 +167,32 @@ function AdminEditContent() {
       .finally(() => {
         setLoading(false);
       });
+  }, []);
 
+  // Hero section form state with full default prefill
+  const [loadingHero, setLoadingHero] = useState(true);
+  const [heroForm, setHeroForm] = useState({
+    logoText: "Vijay Kumar",
+    logoUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/logo_black.webp",
+    titlePrefix: "Software",
+    titleHighlight: "Developer",
+    subtitle: "Crafting scalable, high-performance web applications and intuitive digital experiences.",
+    heroImageUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/hero_img.webp",
+    resumes: [
+      {
+        label: "Download Resume",
+        url: "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
+        isPrimary: true,
+      },
+    ],
+    ctaContactText: "Get in Touch",
+    ctaContactHref: "#contact",
+    isVisible: true,
+  });
+
+  useEffect(() => {
     // Fetch existing Hero and Navbar Section data for editing
+    setLoadingHero(true);
     fetch(`${CONFIG.BACKEND_URL}/api/sections/hero`)
       .then((res) => res.json())
       .then((json) => {
@@ -188,28 +213,9 @@ function AdminEditContent() {
           });
         }
       })
-      .catch((err) => console.error("Error loading hero section data:", err));
+      .catch((err) => console.error("Error loading hero section data:", err))
+      .finally(() => setLoadingHero(false));
   }, []);
-
-  // Hero section form state with full default prefill
-  const [heroForm, setHeroForm] = useState({
-    logoText: "Vijay Kumar",
-    logoUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/logo_black.webp",
-    titlePrefix: "Software",
-    titleHighlight: "Developer",
-    subtitle: "Crafting scalable, high-performance web applications and intuitive digital experiences.",
-    heroImageUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/hero_img.webp",
-    resumes: [
-      {
-        label: "Download Resume",
-        url: "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
-        isPrimary: true,
-      },
-    ],
-    ctaContactText: "Get in Touch",
-    ctaContactHref: "#contact",
-    isVisible: true,
-  });
   const [savingHero, setSavingHero] = useState(false);
   const [heroSaveMsg, setHeroSaveMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -434,6 +440,65 @@ function AdminEditContent() {
 
               {/* TAB CONTENT: HERO SECTION */}
               {activeTab === "hero" && (
+                loadingHero ? (
+                  <div className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs space-y-8 animate-pulse">
+                    {/* Header Skeleton */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100">
+                      <div className="space-y-2">
+                        <div className="h-6 w-64 bg-zinc-200 rounded-lg" />
+                        <div className="h-3.5 w-96 max-w-full bg-zinc-100 rounded-md" />
+                      </div>
+                      <div className="h-9 w-36 bg-zinc-100 rounded-xl" />
+                    </div>
+
+                    {/* Section 1: Logo & Brand */}
+                    <div className="space-y-3">
+                      <div className="h-4 w-40 bg-zinc-200 rounded" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-24 bg-zinc-200 rounded" />
+                          <div className="h-10 bg-zinc-100 rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-24 bg-zinc-200 rounded" />
+                          <div className="h-10 bg-zinc-100 rounded-xl" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Headline & Media */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                      <div className="h-4 w-44 bg-zinc-200 rounded" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-20 bg-zinc-200 rounded" />
+                          <div className="h-10 bg-zinc-100 rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-28 bg-zinc-200 rounded" />
+                          <div className="h-10 bg-zinc-100 rounded-xl" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-3.5 w-20 bg-zinc-200 rounded" />
+                        <div className="h-20 bg-zinc-100 rounded-xl" />
+                      </div>
+                      <div className="h-36 bg-zinc-100 rounded-xl" />
+                    </div>
+
+                    {/* Section 3: Resume Download */}
+                    <div className="space-y-3 pt-4 border-t border-zinc-100">
+                      <div className="h-4 w-40 bg-zinc-200 rounded" />
+                      <div className="h-28 bg-zinc-50 border border-zinc-200/80 rounded-xl" />
+                    </div>
+
+                    {/* Bottom Save Skeleton */}
+                    <div className="pt-6 border-t border-zinc-200 flex items-center justify-between">
+                      <div className="h-4 w-72 bg-zinc-100 rounded" />
+                      <div className="h-11 w-32 bg-zinc-200 rounded-xl" />
+                    </div>
+                  </div>
+                ) : (
                 <form onSubmit={handleSaveHero} className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs space-y-6">
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100">
@@ -618,19 +683,17 @@ function AdminEditContent() {
                               </button>
 
                               {heroForm.resumes.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const updated = heroForm.resumes.filter((_, i) => i !== idx);
-                                    setHeroForm({ ...heroForm, resumes: updated });
-                                  }}
-                                  className="p-1 text-rose-500 hover:text-rose-700 rounded-lg hover:bg-rose-50"
-                                  title="Remove Resume"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = heroForm.resumes.filter((_, i) => i !== idx);
+                                      setHeroForm({ ...heroForm, resumes: updated });
+                                    }}
+                                    className="p-1 text-rose-500 hover:text-rose-700 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                    title="Remove Resume"
+                                  >
+                                    <LuTrash2 className="w-4 h-4" />
+                                  </button>
                               )}
                             </div>
                           </div>
@@ -719,6 +782,7 @@ function AdminEditContent() {
                     </button>
                   </div>
                 </form>
+                )
               )}
 
               {/* TAB CONTENT: EXPERIENCE */}

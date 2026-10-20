@@ -4,6 +4,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ConfirmDialog from "../ui/ConfirmDialog";
+import {
+  LuLayers,
+  LuMail,
+  LuUsers,
+  LuChevronLeft,
+  LuArrowRight,
+  LuLogOut,
+  LuX,
+} from "react-icons/lu";
 
 interface UserProfile {
   id?: string;
@@ -58,7 +67,7 @@ export default function AdminSidebar({
         />
       )}
 
-      {/* 2. Responsive Sidebar (Matching exact layout, collapse animation, and styling) */}
+      {/* 2. Responsive Sidebar */}
       <aside
         className={`fixed lg:relative top-0 left-0 h-screen bg-white border-r border-zinc-200/90 z-50 flex flex-col justify-between transition-all duration-300 ease-in-out select-none flex-shrink-0 ${
           isMobileOpen ? "translate-x-0 w-64 shadow-2xl" : "-translate-x-full lg:translate-x-0"
@@ -75,15 +84,7 @@ export default function AdminSidebar({
                 title="Expand Sidebar"
                 className="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-blue-50 text-zinc-600 hover:text-[#1D4ED8] flex items-center justify-center transition-all cursor-pointer shadow-xs group"
               >
-                <svg
-                  className="w-5 h-5 transform group-hover:scale-110 transition-transform"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
+                <LuArrowRight className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
               </button>
             </div>
           ) : (
@@ -110,9 +111,7 @@ export default function AdminSidebar({
                 title="Collapse Sidebar"
                 className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer flex-shrink-0"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
+                <LuChevronLeft className="w-4 h-4" />
               </button>
 
               {/* Mobile Drawer Close */}
@@ -121,9 +120,7 @@ export default function AdminSidebar({
                 onClick={() => setIsMobileOpen(false)}
                 className="lg:hidden p-1.5 rounded-lg text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <LuX className="w-5 h-5" />
               </button>
             </div>
           )}
@@ -146,9 +143,7 @@ export default function AdminSidebar({
                   : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
               } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
+              <LuLayers className="w-5 h-5 flex-shrink-0" />
               {!isCollapsed && <span className="truncate">Edit Sections</span>}
             </button>
           ) : (
@@ -161,9 +156,7 @@ export default function AdminSidebar({
                   : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
               } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
+              <LuLayers className="w-5 h-5 flex-shrink-0" />
               {!isCollapsed && <span className="truncate">Edit Sections</span>}
             </Link>
           )}
@@ -178,9 +171,7 @@ export default function AdminSidebar({
                 : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
             } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
           >
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-            </svg>
+            <LuMail className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="truncate">Contact Inquiries</span>}
           </Link>
 
@@ -200,9 +191,7 @@ export default function AdminSidebar({
                     : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
                 } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
               >
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
+                <LuUsers className="w-5 h-5 flex-shrink-0" />
                 {!isCollapsed && <span className="truncate">Users & Roles</span>}
               </button>
             ) : (
@@ -215,9 +204,7 @@ export default function AdminSidebar({
                     : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
                 } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
               >
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
+                <LuUsers className="w-5 h-5 flex-shrink-0" />
                 {!isCollapsed && <span className="truncate">Users & Roles</span>}
               </Link>
             )
@@ -240,9 +227,7 @@ export default function AdminSidebar({
             title={isCollapsed ? "Sign Out" : undefined}
             className="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50/60 hover:bg-rose-100/80 border border-rose-200/70 transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-            </svg>
+            <LuLogOut className="w-4 h-4 flex-shrink-0" />
             {!isCollapsed && <span>Sign Out</span>}
           </button>
         </div>

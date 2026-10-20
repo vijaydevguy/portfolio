@@ -13,6 +13,14 @@ import {
   EducationData,
 } from "../../hooks/useExperienceData";
 import toast from "react-hot-toast";
+import {
+  LuPlus,
+  LuSearch,
+  LuX,
+  LuGripVertical,
+  LuPencil,
+  LuTrash2,
+} from "react-icons/lu";
 
 export default function AdminExperienceManager() {
   const [experiences, setExperiences] = useState<ExperienceItemData[]>([]);
@@ -539,19 +547,7 @@ export default function AdminExperienceManager() {
           onClick={handleOpenAdd}
           className="btn-primary !text-xs !py-2.5 !px-5 font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
+          <LuPlus className="w-4 h-4" />
           <span>Add Work Experience</span>
         </button>
       </div>
@@ -566,19 +562,7 @@ export default function AdminExperienceManager() {
             placeholder="Search by role, company, or type..."
             className="form-input bg-white text-xs py-2 pl-9 pr-8 w-full"
           />
-          <svg
-            className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-            />
-          </svg>
+          <LuSearch className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
@@ -586,19 +570,7 @@ export default function AdminExperienceManager() {
               className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-zinc-700"
               title="Clear search"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <LuX className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -677,13 +649,7 @@ export default function AdminExperienceManager() {
                         className="flex items-center justify-center p-1 rounded-md hover:bg-zinc-200/60"
                         title="Drag to rearrange order"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-12a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
-                        </svg>
+                        <LuGripVertical className="w-4 h-4" />
                       </div>
                     </td>
 
@@ -746,15 +712,6 @@ export default function AdminExperienceManager() {
                             }`}
                           />
                         </button>
-                        {/* Status text commented as requested:
-                        <span
-                          className={`text-[11px] font-semibold select-none ${
-                            isPublished ? "text-emerald-700" : "text-zinc-400"
-                          }`}
-                        >
-                          {isPublished ? "Published" : "Unpublished"}
-                        </span>
-                        */}
                       </div>
                     </td>
 
@@ -767,19 +724,7 @@ export default function AdminExperienceManager() {
                           className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-2xs cursor-pointer"
                           title="Edit Experience"
                         >
-                          <svg
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                            />
-                          </svg>
+                          <LuPencil className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -788,19 +733,7 @@ export default function AdminExperienceManager() {
                           className="w-7 h-7 rounded-full border border-red-300 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                           title="Delete Experience"
                         >
-                          <svg
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                            />
-                          </svg>
+                          <LuTrash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -847,20 +780,8 @@ export default function AdminExperienceManager() {
             onClick={handleOpenAddEdu}
             className="btn-primary !text-xs !py-2.5 !px-4 flex items-center gap-1.5 shadow-xs cursor-pointer font-semibold"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Education
+            <LuPlus className="w-4 h-4" />
+            <span>Add Education</span>
           </button>
         </div>
 
@@ -948,19 +869,7 @@ export default function AdminExperienceManager() {
                         className="p-1.5 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                         title="Edit education"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
+                        <LuPencil className="w-4 h-4" />
                       </button>
 
                       {/* Delete Button (Trash Icon) */}
@@ -970,19 +879,7 @@ export default function AdminExperienceManager() {
                         className="p-1.5 text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         title="Delete education"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.8}
-                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                          />
-                        </svg>
+                        <LuTrash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

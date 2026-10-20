@@ -13,6 +13,14 @@ import { useDebounce } from "../../hooks/useDebounce";
 import { SkillItemData } from "../../hooks/useSkillsData";
 import { SKILL_CATEGORIES } from "../../constants/skillCategories";
 import toast from "react-hot-toast";
+import {
+  LuUpload,
+  LuSearch,
+  LuX,
+  LuGripVertical,
+  LuPencil,
+  LuTrash2,
+} from "react-icons/lu";
 
 export default function AdminSkillsManager() {
   const [skills, setSkills] = useState<SkillItemData[]>([]);
@@ -312,9 +320,7 @@ export default function AdminSkillsManager() {
             href="/admin/skills/bulk"
             className="btn-primary !text-xs !py-2.5 !px-5 font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
+            <LuUpload className="w-4 h-4" />
             <span>Upload Skills</span>
           </Link>
         </div>
@@ -330,15 +336,7 @@ export default function AdminSkillsManager() {
             placeholder="Search skills by title or category..."
             className="form-input bg-white text-xs py-2 pl-9 pr-8 w-full"
           />
-          <svg
-            className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
+          <LuSearch className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
@@ -346,9 +344,7 @@ export default function AdminSkillsManager() {
               className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-zinc-700 transition-colors"
               title="Clear search"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <LuX className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -414,9 +410,7 @@ export default function AdminSkillsManager() {
                     {/* Drag Grip Column */}
                     <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-slate-400 hover:text-blue-600">
                       <div className="flex items-center justify-center p-1 rounded-md hover:bg-zinc-200/60" title="Drag row to rearrange order">
-                        <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-12a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
-                        </svg>
+                        <LuGripVertical className="w-4 h-4" />
                       </div>
                     </td>
 
@@ -495,9 +489,7 @@ export default function AdminSkillsManager() {
                           className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-2xs cursor-pointer"
                           title="Edit Skill"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                          </svg>
+                          <LuPencil className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -506,9 +498,7 @@ export default function AdminSkillsManager() {
                           className="w-7 h-7 rounded-full border border-red-300 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                           title="Delete Skill"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
+                          <LuTrash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
