@@ -962,21 +962,25 @@ export default function AdminSettingsManager() {
                   )}
                 </div>
 
+                {/* Auto-formatted Phone Display Preview (Disabled/Read-only to prevent confusion) */}
                 <div>
-                  <label className="form-label font-semibold text-zinc-800">
-                    Display Label (Auto-generated or custom)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="form-label !mb-0 font-semibold text-zinc-700">
+                      Display Preview
+                    </label>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200/60">
+                      Auto-Formatted
+                    </span>
+                  </div>
                   <input
                     type="text"
-                    value={formData.phoneDisplay}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phoneDisplay: e.target.value })
-                    }
-                    placeholder="+91 98765 43210"
-                    className="form-input bg-zinc-50/60 font-mono text-xs"
+                    disabled
+                    readOnly
+                    value={formData.phoneDisplay || `${formData.phoneCountryCode} ${formData.phoneNational}`}
+                    className="form-input bg-zinc-100/80 border-zinc-200 text-zinc-600 font-mono text-xs cursor-not-allowed select-none opacity-80"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Combined Dialer format: <code className="text-zinc-600">{formData.phoneNumber}</code>
+                    Automatically formatted from country dial code and national digits.
                   </p>
                 </div>
               </div>
