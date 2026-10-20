@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { PROJECTS_DATA, ProjectItem } from "@/app/data/projects";
 import ProjectCarousel from "@/app/components/ProjectCarousel";
 
+import { CONFIG } from "@/app/common";
+
 interface ProjectPageProps {
   params: Promise<{
     slug: string;
@@ -17,9 +19,26 @@ export async function generateStaticParams() {
   }));
 }
 
+async function getProject(slug: string): Promise<ProjectItem | null> {
+  try {
+    const res = await fetch(`${CONFIG.BACKEND_URL}/api/projects/detail/${slug}`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback to local static data
+  }
+  return PROJECTS_DATA.find((p) => p.slug === slug) || null;
+}
+
 async function ProjectDetailContent({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = PROJECTS_DATA.find((p) => p.slug === slug);
+  const project = await getProject(slug);
 
   if (!project || !project.hasDetailPage) {
     notFound();
@@ -157,17 +176,24 @@ async function ProjectDetailContent({ params }: ProjectPageProps) {
               Key Features & Architecture
             </h2>
             {project.keyFeatures ? (
-              <ul className="space-y-3.5">
-                {project.keyFeatures.map((feat, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 text-slate-600 text-sm sm:text-base leading-relaxed"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-[#1D4ED8] mt-2 flex-shrink-0" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
+              typeof project.keyFeatures === "string" ? (
+                <div
+                  className="prose prose-zinc max-w-none text-slate-600 text-sm sm:text-base leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-2 [&>h3]:text-zinc-900 [&>h3]:font-bold [&>h3]:text-base [&>p]:mb-2"
+                  dangerouslySetInnerHTML={{ __html: project.keyFeatures }}
+                />
+              ) : Array.isArray(project.keyFeatures) ? (
+                <ul className="space-y-3.5">
+                  {project.keyFeatures.map((feat, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-3 text-slate-600 text-sm sm:text-base leading-relaxed"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-[#1D4ED8] mt-2 flex-shrink-0" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null
             ) : (
               <p className="text-slate-600 text-sm">
                 Details available upon request.

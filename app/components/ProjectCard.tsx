@@ -4,20 +4,22 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ProjectItem } from "../data/projects";
+import { ProjectItem } from "../hooks/useProjectsData";
 
 export default function ProjectCard({ project }: { project: ProjectItem }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const imagesCount = project.previewImages.length;
+  const previewImages = project?.previewImages || [];
+  const imagesCount = previewImages.length;
+  const projectKey = (project?._id || project?.id || project?.slug || "project").toString();
 
   // Staggered asynchronous random interval so cards rotate independently
   useEffect(() => {
     if (isHovered || imagesCount <= 1) return;
 
     const baseDelay = 4200;
-    const randomOffset = (project.id.charCodeAt(0) * 600) % 2500;
+    const randomOffset = (projectKey.charCodeAt(0) * 600) % 2500;
     const intervalTime = baseDelay + randomOffset;
 
     const interval = setInterval(() => {
@@ -25,10 +27,10 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [imagesCount, isHovered, project.id]);
+  }, [imagesCount, isHovered, projectKey]);
 
   const activeImage =
-    project.previewImages[activeImageIndex] || project.previewImages[0];
+    previewImages[activeImageIndex] || previewImages[0] || "";
 
   return (
     <motion.div
@@ -51,13 +53,20 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
             transition={{ duration: 0.45, ease: "easeOut" }}
             className="absolute inset-0 w-full h-full"
           >
-            <Image
-              src={activeImage}
-              alt={`${project.title} Preview ${activeImageIndex + 1}`}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
-            />
+            {activeImage ? (
+              <Image
+                src={activeImage}
+                alt={`${project.title} Preview ${activeImageIndex + 1}`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 bg-zinc-100">
+                No preview image
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -89,25 +98,27 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
         </div>
 
         {/* Top-Right: Image Dots Indicator */}
-        <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-sm">
-          {project.previewImages.slice(0, 3).map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveImageIndex(idx);
-              }}
-              aria-label={`View preview ${idx + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                activeImageIndex === idx
-                  ? "w-4 bg-white"
-                  : "w-1.5 bg-white/50 hover:bg-white/80"
-              }`}
-            />
-          ))}
-        </div>
+        {previewImages.length > 1 && (
+          <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-sm">
+            {previewImages.slice(0, 3).map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveImageIndex(idx);
+                }}
+                aria-label={`View preview ${idx + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  activeImageIndex === idx
+                    ? "w-4 bg-white"
+                    : "w-1.5 bg-white/50 hover:bg-white/80"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 2. Details Section (Bottom Part - Cleanly Separated) */}

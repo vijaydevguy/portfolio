@@ -48,6 +48,7 @@ export const metadata: Metadata = {
 
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Toaster } from "react-hot-toast";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import Navbar from "./components/Navbar";
 import FloatingContactMenu from "./components/FloatingContactMenu";
@@ -60,12 +61,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${outfit.variable} ${plusJakarta.variable} h-full`}
     >
       <body className="min-h-full flex flex-col font-sans bg-white text-zinc-900 antialiased">
+        <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
-        <Navbar />
-        <LayoutWrapper>{children}</LayoutWrapper>
-        <FloatingContactMenu />
+        <Suspense fallback={null}>
+          <Navbar />
+        </Suspense>
+        <Suspense fallback={null}>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </Suspense>
+        <Suspense fallback={null}>
+          <FloatingContactMenu />
+        </Suspense>
       </body>
     </html>
   );

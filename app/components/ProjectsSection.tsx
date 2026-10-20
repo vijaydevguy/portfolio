@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { PROJECTS_DATA, ProjectItem } from "../data/projects";
+import { useProjectsData, ProjectItem } from "../hooks/useProjectsData";
 import ProjectCard from "./ProjectCard";
 import SectionHeading from "./ui/SectionHeading";
 
@@ -11,11 +11,12 @@ const CATEGORIES = ["All", "Development", "UI / UX Design"] as const;
 
 export default function ProjectsSection() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const { projects: allHomeProjects, loading } = useProjectsData("All", { home: true });
 
   const filteredProjects =
     activeCategory === "All"
-      ? PROJECTS_DATA
-      : PROJECTS_DATA.filter((p) => p.category === activeCategory);
+      ? allHomeProjects
+      : allHomeProjects.filter((p) => p.category === activeCategory);
 
   const displayedProjects = filteredProjects.slice(0, 3);
 
@@ -66,11 +67,37 @@ export default function ProjectsSection() {
         </div>
 
         {/* Project Cards Grid (Top 3) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayedProjects.map((project: ProjectItem) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="rounded-2xl border border-zinc-200/80 bg-white p-4 space-y-4 animate-pulse shadow-xs"
+              >
+                <div className="aspect-[16/10] bg-zinc-100 rounded-xl w-full" />
+                <div className="space-y-2 pt-2">
+                  <div className="h-4 bg-zinc-200 rounded w-1/3" />
+                  <div className="h-6 bg-zinc-200 rounded w-3/4" />
+                  <div className="h-4 bg-zinc-100 rounded w-full" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <div className="h-6 w-16 bg-zinc-100 rounded-lg" />
+                  <div className="h-6 w-16 bg-zinc-100 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayedProjects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {displayedProjects.map((project: ProjectItem) => (
+              <ProjectCard key={project._id || project.id || project.slug} project={project as any} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 text-slate-500 font-medium">
+            No projects found in this category.
+          </div>
+        )}
 
         {/* More Projects Redirection CTA */}
         <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">

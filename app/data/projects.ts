@@ -11,8 +11,10 @@ export interface ProjectItem {
   liveUrl?: string;
   githubUrl?: string;
   overview?: string;
-  keyFeatures?: string[];
+  keyFeatures?: string[] | string;
   role?: string;
+  order?: number;
+  isFeaturedOnHome?: boolean;
 }
 
 export const PROJECTS_DATA: ProjectItem[] = [

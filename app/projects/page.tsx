@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { PROJECTS_DATA, ProjectItem } from "@/app/data/projects";
+import { useProjectsData, ProjectItem } from "@/app/hooks/useProjectsData";
 import ProjectCard from "@/app/components/ProjectCard";
 
 export default function AllProjectsPage() {
+  const { projects, loading } = useProjectsData("All");
+
   return (
     <div className="w-full bg-white min-h-screen py-10 lg:py-16">
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -34,11 +38,32 @@ export default function AllProjectsPage() {
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {PROJECTS_DATA.map((project: ProjectItem) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div
+                key={n}
+                className="rounded-2xl border border-zinc-200/80 bg-white p-4 space-y-4 animate-pulse shadow-xs"
+              >
+                <div className="aspect-[16/10] bg-zinc-100 rounded-xl w-full" />
+                <div className="space-y-2 pt-2">
+                  <div className="h-4 bg-zinc-200 rounded w-1/3" />
+                  <div className="h-6 bg-zinc-200 rounded w-3/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : projects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project: ProjectItem) => (
+              <ProjectCard key={project._id || project.id || project.slug} project={project as any} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-slate-500 font-medium">
+            No projects available yet.
+          </div>
+        )}
       </div>
     </div>
   );
