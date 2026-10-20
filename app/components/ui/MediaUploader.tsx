@@ -22,6 +22,7 @@ interface MediaUploaderProps {
   accept: string; // e.g. "image/*" or "application/pdf"
   currentValue: string; // clean shortPath (e.g. "v1773030225/portfolio_app/logo_black") or URL
   onSelect: (value: string) => void;
+  onFileUploaded?: (fileName: string, file: File) => void;
   helperText?: string;
   isPdf?: boolean;
   hideDropzone?: boolean;
@@ -41,6 +42,7 @@ export default function MediaUploader({
   accept,
   currentValue,
   onSelect,
+  onFileUploaded,
   helperText,
   isPdf = false,
   hideDropzone = false,
@@ -145,6 +147,9 @@ export default function MediaUploader({
       // Cloudinary's f_auto/q_auto will handle format (webp, avif, etc.) automatically.
       const secureUrl = data.asset.url || data.asset.secureUrl || data.asset.shortPath;
       onSelect(secureUrl);
+      if (onFileUploaded) {
+        onFileUploaded(file.name, file);
+      }
 
       if (Array.isArray(data.recentAssets)) {
         setRecentAssets(data.recentAssets);

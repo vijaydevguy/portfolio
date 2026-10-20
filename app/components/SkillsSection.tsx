@@ -2,10 +2,19 @@
 
 import Marquee from "react-fast-marquee";
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { SKILLS_ROW_1, SKILLS_ROW_2, SkillItem } from "../data/skills";
+import { useSkillsData, SkillItemData } from "../hooks/useSkillsData";
 import SectionHeading from "./ui/SectionHeading";
 
-function SkillChip({ skill }: { skill: SkillItem }) {
+interface UnifiedSkill {
+  name: string;
+  category?: string;
+  imageUrl?: string;
+  iconSvg?: React.ReactNode;
+}
+
+function SkillChip({ skill }: { skill: UnifiedSkill }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -17,12 +26,12 @@ function SkillChip({ skill }: { skill: SkillItem }) {
   }, []);
 
   const handleClick = () => {
-    // Show tooltip on mobile tap / click
+    // Show toaster tooltip on mobile tap / click
     setShowTooltip(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setShowTooltip(false);
-    }, 2200); // automatically hides after ~2.2 seconds
+    }, 2200);
   };
 
   return (
@@ -38,12 +47,23 @@ function SkillChip({ skill }: { skill: SkillItem }) {
         showTooltip ? "z-50" : "z-10"
       }`}
     >
-      {/* Icon only - No card border / background */}
+      {/* Icon: Image from upload or static SVG */}
       <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-125">
-        {skill.iconSvg}
+        {skill.imageUrl ? (
+          <Image
+            src={skill.imageUrl}
+            alt={skill.name}
+            width={72}
+            height={72}
+            className="object-contain max-h-full max-w-full drop-shadow-xs"
+            unoptimized
+          />
+        ) : (
+          skill.iconSvg
+        )}
       </div>
 
-      {/* Floating Tooltip with Triangle Pointer (Visible on Desktop Hover & Mobile Click) */}
+      {/* Floating Toaster Name Badge (Visible on Desktop Hover & Mobile Click) */}
       <div
         className={`absolute -top-11 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-xl bg-zinc-950 text-white text-xs font-semibold whitespace-nowrap shadow-2xl transition-all duration-200 z-50 pointer-events-none ${
           showTooltip
@@ -60,6 +80,34 @@ function SkillChip({ skill }: { skill: SkillItem }) {
 }
 
 export default function SkillsSection() {
+  const { skills: dynamicSkills, loading } = useSkillsData();
+
+  // If dynamic skills exist in database, divide them into 2 marquee rows
+  let row1: UnifiedSkill[] = [];
+  let row2: UnifiedSkill[] = [];
+
+  if (dynamicSkills && dynamicSkills.length > 0) {
+    const half = Math.ceil(dynamicSkills.length / 2);
+    row1 = dynamicSkills.slice(0, half).map((s) => ({
+      name: s.name,
+      category: s.category,
+      imageUrl: s.imageUrl,
+    }));
+    row2 = dynamicSkills.slice(half).map((s) => ({
+      name: s.name,
+      category: s.category,
+      imageUrl: s.imageUrl,
+    }));
+    // If odd or only 1 row, duplicate to make marquee full
+    if (row2.length === 0) {
+      row2 = [...row1];
+    }
+  } else {
+    // Fallback to initial curated SVGs
+    row1 = SKILLS_ROW_1;
+    row2 = SKILLS_ROW_2;
+  }
+
   return (
     <section
       id="skills"
@@ -91,7 +139,7 @@ export default function SkillsSection() {
             autoFill={true}
             className="overflow-visible !overflow-visible"
           >
-            {SKILLS_ROW_1.map((skill, index) => (
+            {row1.map((skill, index) => (
               <SkillChip key={`${skill.name}-${index}`} skill={skill} />
             ))}
           </Marquee>
@@ -107,7 +155,7 @@ export default function SkillsSection() {
             autoFill={true}
             className="overflow-visible !overflow-visible"
           >
-            {SKILLS_ROW_2.map((skill, index) => (
+            {row2.map((skill, index) => (
               <SkillChip key={`${skill.name}-${index}`} skill={skill} />
             ))}
           </Marquee>
@@ -130,7 +178,7 @@ export default function SkillsSection() {
               d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
             />
           </svg>
-          Hover over any row to pause carousel
+          Hover or tap any skill icon to show its name
         </span>
       </div>
     </section>

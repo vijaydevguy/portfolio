@@ -9,6 +9,7 @@ import TableSkeleton from "../../components/ui/TableSkeleton";
 import Pagination from "../../components/ui/Pagination";
 import MediaUploader from "../../components/ui/MediaUploader";
 import AdminProjectsManager from "../../components/admin/AdminProjectsManager";
+import AdminSkillsManager from "../../components/admin/AdminSkillsManager";
 import { useDebounce } from "../../hooks/useDebounce";
 
 interface UserProfile {
@@ -867,16 +868,7 @@ function AdminEditContent() {
               {activeTab === "projects" && <AdminProjectsManager />}
 
               {/* TAB CONTENT: SKILLS */}
-              {activeTab === "skills" && (
-                <div className="p-6 sm:p-8 rounded-2xl bg-white border border-zinc-200/90 shadow-xs">
-                  <h2 className="text-lg font-bold text-zinc-950 font-heading mb-1">
-                    Skills & Technologies
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Organize technical proficiency badges and marquee items.
-                  </p>
-                </div>
-              )}
+              {activeTab === "skills" && <AdminSkillsManager />}
 
               {/* TAB CONTENT: CONTACT */}
               {activeTab === "contact" && (
