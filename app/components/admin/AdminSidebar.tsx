@@ -13,6 +13,7 @@ import {
   LuLogOut,
   LuX,
   LuSlidersHorizontal,
+  LuTag,
 } from "react-icons/lu";
 
 interface UserProfile {
@@ -24,7 +25,7 @@ interface UserProfile {
 
 interface AdminSidebarProps {
   user: UserProfile | null;
-  activeMenu?: "sections" | "contact" | "settings" | "users";
+  activeMenu?: "sections" | "contact" | "settings" | "project-options" | "users";
   onNavigateSections?: (tab?: string) => void;
   onNavigateUsers?: () => void;
   isMobileOpen: boolean;
@@ -48,11 +49,13 @@ export default function AdminSidebar({
     activeMenu ||
     (pathname?.startsWith("/admin/contact")
       ? "contact"
-      : pathname?.startsWith("/admin/settings")
-        ? "settings"
-        : pathname?.startsWith("/admin/edit")
-          ? "sections"
-          : "sections");
+      : pathname?.startsWith("/admin/project-options")
+        ? "project-options"
+        : pathname?.startsWith("/admin/settings")
+          ? "settings"
+          : pathname?.startsWith("/admin/edit")
+            ? "sections"
+            : "sections");
 
   const executeLogout = () => {
     localStorage.removeItem("admin_token");
@@ -164,7 +167,21 @@ export default function AdminSidebar({
             </Link>
           )}
 
-          {/* Option 2: Contact Inquiries (Dedicated Standalone Page) */}
+          {/* Option 2: Project Categories & Types */}
+          <Link
+            href="/admin/project-options"
+            title={isCollapsed ? "Project Categories" : undefined}
+            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
+              currentMenu === "project-options"
+                ? "bg-blue-50 text-[#1D4ED8] shadow-xs"
+                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+            } ${isCollapsed ? "justify-center px-2" : "justify-start"}`}
+          >
+            <LuTag className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span className="truncate">Project Categories</span>}
+          </Link>
+
+          {/* Option 3: Contact Inquiries (Dedicated Standalone Page) */}
           <Link
             href="/admin/contact"
             title={isCollapsed ? "Contact Inquiries" : undefined}
@@ -178,7 +195,7 @@ export default function AdminSidebar({
             {!isCollapsed && <span className="truncate">Contact Inquiries</span>}
           </Link>
 
-          {/* Option 3: Common Settings (Cal.com, Phone, Email, WhatsApp) */}
+          {/* Option 4: Common Settings (Cal.com, Phone, Email, WhatsApp, GA4) */}
           <Link
             href="/admin/settings"
             title={isCollapsed ? "Common Settings" : undefined}

@@ -7,6 +7,7 @@ import { CONFIG } from "@/app/common";
 import MultiImageUploader from "@/app/components/ui/MultiImageUploader";
 import RichTextEditor from "@/app/components/ui/RichTextEditor";
 import { ProjectItem } from "@/app/hooks/useProjectsData";
+import { useProjectOptions } from "@/app/hooks/useProjectOptions";
 import toast from "react-hot-toast";
 
 const INITIAL_PROJECT_STATE: Partial<ProjectItem> = {
@@ -57,6 +58,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
   const isNew = projectId === "new";
 
   const router = useRouter();
+  const { categories, projectTypes } = useProjectOptions();
 
   const [formData, setFormData] = useState<Partial<ProjectItem>>(INITIAL_PROJECT_STATE);
   const [loading, setLoading] = useState(!isNew);
@@ -318,24 +320,38 @@ function EditProjectContent({ params }: EditProjectPageProps) {
               <div>
                 <label className="form-label font-semibold text-zinc-900">Category</label>
                 <select
-                  value={formData.category || "Development"}
+                  value={formData.category || (categories[0]?.name || "Development")}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                  className="form-input bg-white"
+                  className="form-input bg-white cursor-pointer"
                 >
-                  <option value="Development">Development</option>
-                  <option value="UI / UX Design">UI / UX Design</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id || cat.name} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                  {/* Fallback if current project category is not in list yet */}
+                  {formData.category && !categories.some((c) => c.name === formData.category) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
                 </select>
               </div>
 
               <div>
                 <label className="form-label font-semibold text-zinc-900">Project Type</label>
                 <select
-                  value={formData.projectType || "Personal"}
+                  value={formData.projectType || (projectTypes[0]?.name || "Personal")}
                   onChange={(e) => setFormData({ ...formData, projectType: e.target.value as any })}
-                  className="form-input bg-white"
+                  className="form-input bg-white cursor-pointer"
                 >
-                  <option value="Personal">Personal</option>
-                  <option value="Professional">Professional</option>
+                  {projectTypes.map((pt) => (
+                    <option key={pt._id || pt.name} value={pt.name}>
+                      {pt.name}
+                    </option>
+                  ))}
+                  {/* Fallback if current project type is not in list yet */}
+                  {formData.projectType && !projectTypes.some((p) => p.name === formData.projectType) && (
+                    <option value={formData.projectType}>{formData.projectType}</option>
+                  )}
                 </select>
               </div>
 

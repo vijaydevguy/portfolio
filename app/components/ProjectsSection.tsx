@@ -4,14 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useProjectsData, ProjectItem } from "../hooks/useProjectsData";
+import { useProjectOptions } from "../hooks/useProjectOptions";
 import ProjectCard from "./ProjectCard";
 import SectionHeading from "./ui/SectionHeading";
-
-const CATEGORIES = ["All", "Development", "UI / UX Design"] as const;
 
 export default function ProjectsSection() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const { projects: allHomeProjects, loading } = useProjectsData("All", { home: true });
+  const { categories } = useProjectOptions();
+
+  const categoryNames = ["All", ...categories.map((c) => c.name)];
 
   const filteredProjects =
     activeCategory === "All"
@@ -35,7 +37,7 @@ export default function ProjectsSection() {
 
           {/* Category Filter Tabs */}
           <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 self-start md:self-auto font-heading">
-            {CATEGORIES.map((cat) => {
+            {categoryNames.map((cat) => {
               const isActive = activeCategory === cat;
               return (
                 <button
