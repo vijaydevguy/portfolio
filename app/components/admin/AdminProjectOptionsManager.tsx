@@ -310,10 +310,10 @@ export default function AdminProjectOptionsManager() {
         setItemToDelete(null);
         fetchOptions();
       } else {
-        toast.error(json.message || "Failed to delete");
+        toast.error(json.message || `Failed to delete ${itemToDelete.type === "category" ? "category" : "project type"}.`);
       }
     } catch (err: any) {
-      toast.error(err?.message || "Error deleting option");
+      toast.error(err?.message || "Network error while deleting option. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -694,8 +694,10 @@ export default function AdminProjectOptionsManager() {
       <ConfirmDialog
         isOpen={Boolean(itemToDelete)}
         title={`Delete ${itemToDelete?.type === "category" ? "Category" : "Project Type"}?`}
-        description={`Are you sure you want to delete "${itemToDelete?.name}"? Projects already using this value may retain it or require re-assignment.`}
-        confirmText="Delete"
+        description={`Are you sure you want to delete "${itemToDelete?.name}"? Any projects currently assigned to this ${
+          itemToDelete?.type === "category" ? "category" : "project type"
+        } will automatically fallback to "All" so that no projects are lost or broken.`}
+        confirmText="Delete & Reassign to All"
         cancelText="Cancel"
         isDestructive={true}
         onConfirm={handleDeleteConfirm}

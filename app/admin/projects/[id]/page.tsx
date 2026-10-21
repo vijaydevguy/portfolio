@@ -320,38 +320,48 @@ function EditProjectContent({ params }: EditProjectPageProps) {
               <div>
                 <label className="form-label font-semibold text-zinc-900">Category</label>
                 <select
-                  value={formData.category || (categories[0]?.name || "Development")}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  value={formData.category || (categories[0]?.name || "All")}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="form-input bg-white cursor-pointer"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat._id || cat.name} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  <option value="All">All</option>
+                  {categories
+                    .filter((c) => c.name.toLowerCase() !== "all")
+                    .map((cat) => (
+                      <option key={cat._id || cat.name} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
                   {/* Fallback if current project category is not in list yet */}
-                  {formData.category && !categories.some((c) => c.name === formData.category) && (
-                    <option value={formData.category}>{formData.category}</option>
-                  )}
+                  {formData.category &&
+                    formData.category !== "All" &&
+                    !categories.some((c) => c.name === formData.category) && (
+                      <option value={formData.category}>{formData.category}</option>
+                    )}
                 </select>
               </div>
 
               <div>
                 <label className="form-label font-semibold text-zinc-900">Project Type</label>
                 <select
-                  value={formData.projectType || (projectTypes[0]?.name || "Personal")}
-                  onChange={(e) => setFormData({ ...formData, projectType: e.target.value as any })}
+                  value={formData.projectType || (projectTypes[0]?.name || "All")}
+                  onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                   className="form-input bg-white cursor-pointer"
                 >
-                  {projectTypes.map((pt) => (
-                    <option key={pt._id || pt.name} value={pt.name}>
-                      {pt.name}
-                    </option>
-                  ))}
+                  <option value="All">All</option>
+                  {projectTypes
+                    .filter((pt) => pt.name.toLowerCase() !== "all")
+                    .map((pt) => (
+                      <option key={pt._id || pt.name} value={pt.name}>
+                        {pt.name}
+                      </option>
+                    ))}
                   {/* Fallback if current project type is not in list yet */}
-                  {formData.projectType && !projectTypes.some((p) => p.name === formData.projectType) && (
-                    <option value={formData.projectType}>{formData.projectType}</option>
-                  )}
+                  {formData.projectType &&
+                    formData.projectType !== "All" &&
+                    !projectTypes.some((p) => p.name === formData.projectType) && (
+                      <option value={formData.projectType}>{formData.projectType}</option>
+                    )}
                 </select>
               </div>
 

@@ -8,8 +8,8 @@ export interface ProjectItem {
   id?: string;
   slug: string;
   title: string;
-  category: "Development" | "UI / UX Design";
-  projectType: "Professional" | "Personal";
+  category: string;
+  projectType: string;
   shortDescription: string;
   technologies: string[];
   previewImages: string[];

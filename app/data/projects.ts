@@ -2,8 +2,8 @@ export interface ProjectItem {
   id: string;
   slug: string;
   title: string;
-  category: "Development" | "UI / UX Design"; // 2 primary domain categories (+ All in tab filter)
-  projectType: "Professional" | "Personal"; // Workplace vs Own project
+  category: string; // Dynamic categories (+ All)
+  projectType: string; // Dynamic project types (+ All)
   shortDescription: string;
   technologies: string[]; // 3 to 4 key technologies
   previewImages: string[]; // exactly 3 preview images
