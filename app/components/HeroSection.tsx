@@ -5,6 +5,7 @@ import { CLOUDINARY_URLS } from "../assets";
 import { CONFIG } from "../common";
 import { useHeroData } from "../hooks/useHeroData";
 import { getCloudinaryUrl, getCloudinaryDownloadUrl } from "../lib/cloudinary";
+import { HERO_FALLBACK_DATA } from "../data/hero";
 
 export default function HeroSection() {
   const { data: heroData, loading } = useHeroData();
@@ -43,26 +44,36 @@ export default function HeroSection() {
     return null;
   }
 
-  // Values from API, only falling back if API didn't provide a specific field
-  const titlePrefix = heroData?.titlePrefix || "Software";
-  const titleHighlight = heroData?.titleHighlight || "Developer";
-  const subtitle =
-    heroData?.subtitle ||
-    "Crafting scalable, high-performance web applications and intuitive digital experiences.";
-  const rawHeroImg = heroData?.heroImageUrl || CLOUDINARY_URLS.hero_img;
+  // Values from API, falling back cleanly to centralized HERO_FALLBACK_DATA
+  const titlePrefix = heroData?.titlePrefix || HERO_FALLBACK_DATA.titlePrefix;
+  const titleHighlight =
+    heroData?.titleHighlight || HERO_FALLBACK_DATA.titleHighlight;
+  const subtitle = heroData?.subtitle || HERO_FALLBACK_DATA.subtitle;
+
+  // const isBrokenHeroUrl =
+  //   heroData?.heroImageUrl &&
+  //   (heroData.heroImageUrl.includes("v1773030225") ||
+  //     heroData.heroImageUrl.includes("portfolio_app/hero_img.webp"));
+
+  // const rawHeroImg =
+  //   !isBrokenHeroUrl && heroData?.heroImageUrl
+  //     ? heroData.heroImageUrl
+  //     : HERO_FALLBACK_DATA.heroImageUrl;
+  // const heroImg = getCloudinaryUrl(rawHeroImg);
+
+  const rawHeroImg = getCloudinaryUrl(
+    "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1792417439/user_6ad58de963f484bc645d5e3e/hero/illustration/file_hq2zoj.png",
+  );
   const heroImg = getCloudinaryUrl(rawHeroImg);
+
   const resumes =
     heroData?.resumes && heroData.resumes.length > 0
       ? heroData.resumes
-      : [
-          {
-            label: "Download Resume",
-            url: CONFIG.RESUME_DOWNLOAD_URL,
-            isPrimary: true,
-          },
-        ];
-  const ctaContactText = heroData?.ctaContactText || "Get in Touch";
-  const ctaContactHref = heroData?.ctaContactHref || "#contact";
+      : HERO_FALLBACK_DATA.resumes;
+  const ctaContactText =
+    heroData?.ctaContactText || HERO_FALLBACK_DATA.ctaContactText;
+  const ctaContactHref =
+    heroData?.ctaContactHref || HERO_FALLBACK_DATA.ctaContactHref;
 
   return (
     <section
@@ -75,7 +86,8 @@ export default function HeroSection() {
           <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-zinc-950 font-heading leading-[1.15]">
-                {titlePrefix} <span className="text-[#1D4ED8]">{titleHighlight}</span>
+                {titlePrefix}{" "}
+                <span className="text-[#1D4ED8]">{titleHighlight}</span>
               </h1>
               <p className="text-lg sm:text-xl text-slate-600 max-w-xl leading-relaxed font-normal">
                 {subtitle}
@@ -86,10 +98,15 @@ export default function HeroSection() {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
               {/* Dynamic Resumes (Capped at 3) */}
               {resumes.map((resume, idx) => {
-                const isPdf = (resume.url || "").toLowerCase().endsWith(".pdf") || (resume.url || "").includes(".pdf");
+                const isPdf =
+                  (resume.url || "").toLowerCase().endsWith(".pdf") ||
+                  (resume.url || "").includes(".pdf");
                 const downloadUrl = isPdf
-                  ? getCloudinaryDownloadUrl(resume.url, `${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf`)
-                  : (resume.url || CONFIG.RESUME_DOWNLOAD_URL);
+                  ? getCloudinaryDownloadUrl(
+                      resume.url,
+                      `${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf`,
+                    )
+                  : resume.url || CONFIG.RESUME_DOWNLOAD_URL;
 
                 return (
                   <a

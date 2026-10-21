@@ -103,7 +103,7 @@ export default function SkillsSection() {
       row2 = [...row1];
     }
   } else {
-    // Fallback to initial curated SVGs
+    // Fallback to initial curated SVGs from data/skills.tsx
     row1 = SKILLS_ROW_1;
     row2 = SKILLS_ROW_2;
   }

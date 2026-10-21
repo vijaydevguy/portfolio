@@ -15,16 +15,17 @@ import { CLOUDINARY_URLS } from "../assets";
 import { NAV_ITEMS } from "../common";
 import { useHeroData } from "../hooks/useHeroData";
 import { getCloudinaryUrl } from "../lib/cloudinary";
+import { HERO_FALLBACK_DATA } from "../data/hero";
 
 export default function Navbar() {
   const { data: heroData, loading } = useHeroData();
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // Dynamic Logo URL with Cloudinary fallback
-  const rawLogoSrc = heroData?.logoUrl || CLOUDINARY_URLS.logo;
+  // Dynamic Logo URL with centralized fallback
+  const rawLogoSrc = heroData?.logoUrl || HERO_FALLBACK_DATA.logoUrl;
   const logoSrc = getCloudinaryUrl(rawLogoSrc);
-  const logoAlt = heroData?.logoText ? `${heroData.logoText} Logo` : "Vijay Kumar Logo";
+  const logoAlt = heroData?.logoText ? `${heroData.logoText} Logo` : `${HERO_FALLBACK_DATA.logoText} Logo`;
 
   // Hide Navbar completely on admin pages
   if (pathname?.startsWith("/admin")) {

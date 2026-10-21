@@ -177,7 +177,7 @@ function AdminEditContent() {
     titlePrefix: "Software",
     titleHighlight: "Developer",
     subtitle: "Crafting scalable, high-performance web applications and intuitive digital experiences.",
-    heroImageUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1773030225/portfolio_app/hero_img.webp",
+    heroImageUrl: "https://res.cloudinary.com/dtgn3hnzh/image/upload/v1792249847/hero_img_oharzk",
     resumes: [
       {
         label: "Download Resume",
