@@ -29,7 +29,7 @@ export default function ProjectsSection() {
         <div className="flex flex-col items-center justify-center text-center mb-16">
           <SectionHeading
             badge="Featured Work"
-            title="Selected"
+            title="My"
             highlightedText="Projects"
             description="A curated collection of full-stack platforms, modern web applications, and UI/UX systems."
             alignment="center"

@@ -192,7 +192,7 @@ export default function AdminProjectsManager() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100">
         <div>
           <h2 className="text-lg font-bold text-zinc-950 font-heading">
-            Selected Projects Showcase
+            My Projects Showcase
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage your project portfolio, pick up to 3 featured home projects,

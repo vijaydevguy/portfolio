@@ -35,7 +35,7 @@ type ContentTab = "hero" | "experience" | "projects" | "skills";
 const CONTENT_TABS: { key: ContentTab; label: string; icon: string }[] = [
   { key: "hero", label: "Hero Section", icon: "👤" },
   { key: "experience", label: "Experience & Education", icon: "💼" },
-  { key: "projects", label: "Selected Projects", icon: "🚀" },
+  { key: "projects", label: "My Projects", icon: "🚀" },
   { key: "skills", label: "Skills & Tech", icon: "⚡" },
 ];
 
