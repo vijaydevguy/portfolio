@@ -73,6 +73,8 @@ function EditProjectContent({ params }: EditProjectPageProps) {
   const [savingStatus, setSavingStatus] = useState<string>("");
 
   const [techInput, setTechInput] = useState("");
+  const [draggedTechIdx, setDraggedTechIdx] = useState<number | null>(null);
+  const [dragOverTechIdx, setDragOverTechIdx] = useState<number | null>(null);
 
   // Cleanly reset or fetch project data whenever projectId or isNew changes
   useEffect(() => {
@@ -254,6 +256,49 @@ function EditProjectContent({ params }: EditProjectPageProps) {
       ...formData,
       technologies: (formData.technologies || []).filter((t) => t !== tech),
     });
+  };
+
+  const moveTech = (fromIndex: number, toIndex: number) => {
+    const list = [...(formData.technologies || [])];
+    if (fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) return;
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    setFormData({ ...formData, technologies: list });
+  };
+
+  const handleTechDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedTechIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleTechDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverTechIdx !== index) {
+      setDragOverTechIdx(index);
+    }
+  };
+
+  const handleTechDragLeave = () => {
+    setDragOverTechIdx(null);
+  };
+
+  const handleTechDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedTechIdx === null || draggedTechIdx === targetIndex) {
+      setDraggedTechIdx(null);
+      setDragOverTechIdx(null);
+      return;
+    }
+    moveTech(draggedTechIdx, targetIndex);
+    setDraggedTechIdx(null);
+    setDragOverTechIdx(null);
+  };
+
+  const handleTechDragEnd = () => {
+    setDraggedTechIdx(null);
+    setDragOverTechIdx(null);
   };
 
   if (loading) {
@@ -497,9 +542,19 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
           {/* Section 3: Technologies Stack */}
           <div className="space-y-4 pt-6 border-t border-zinc-100">
-            <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider text-slate-400 font-heading">
-              3. Technologies & Tools
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider text-slate-400 font-heading">
+                3. Technologies & Tools
+              </h2>
+              {(formData.technologies || []).length > 1 && (
+                <span className="text-[11px] text-zinc-600 flex items-center gap-1 font-medium">
+                  <svg className="w-3.5 h-3.5 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                  </svg>
+                  Drag badges to rearrange
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -524,21 +579,53 @@ function EditProjectContent({ params }: EditProjectPageProps) {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              {(formData.technologies || []).map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-800 font-medium text-xs shadow-2xs"
-                >
-                  <span>{t}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeTech(t)}
-                    className="text-slate-400 hover:text-rose-600 font-bold cursor-pointer"
+              {(formData.technologies || []).map((t, index) => {
+                const isDragging = draggedTechIdx === index;
+                const isOver = dragOverTechIdx === index;
+                return (
+                  <div
+                    key={`${t}-${index}`}
+                    draggable
+                    onDragStart={(e) => handleTechDragStart(e, index)}
+                    onDragOver={(e) => handleTechDragOver(e, index)}
+                    onDragLeave={handleTechDragLeave}
+                    onDrop={(e) => handleTechDrop(e, index)}
+                    onDragEnd={handleTechDragEnd}
+                    className={`group inline-flex items-center gap-2 pl-2.5 pr-2 py-1.5 rounded-xl border text-xs font-medium cursor-grab active:cursor-grabbing select-none transition-all duration-150 ${
+                      isDragging
+                        ? "opacity-40 border-dashed border-blue-400 bg-blue-50 scale-95"
+                        : isOver
+                        ? "border-blue-500 bg-blue-50/80 ring-2 ring-blue-400/30 -translate-y-0.5"
+                        : "bg-zinc-100 hover:bg-zinc-200/80 border-zinc-200 text-zinc-800 shadow-2xs"
+                    }`}
+                    title="Drag to rearrange order"
                   >
-                    ×
-                  </button>
-                </span>
-              ))}
+                    {/* Grip handle indicator */}
+                    <span className="text-zinc-600 group-hover:text-zinc-600 transition-colors">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-12a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
+                      </svg>
+                    </span>
+
+                    <span>{t}</span>
+
+                    {/* Prominent Delete Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeTech(t);
+                      }}
+                      className="w-5 h-5 flex items-center justify-center rounded-md text-zinc-600 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      title="Remove technology"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -573,38 +660,51 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
           {/* Section 5: Dedicated Case Study Page */}
           <div className="space-y-4 pt-6 border-t border-zinc-100">
-            <div className="flex items-center justify-between pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
               <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider text-slate-400 font-heading">
                 5. Dedicated Case Study Page (/projects/{formData.slug || "slug"})
               </h2>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="hasDetailPage"
-                  checked={formData.hasDetailPage ?? true}
-                  onChange={(e) => setFormData({ ...formData, hasDetailPage: e.target.checked })}
-                  className="h-4 w-4 rounded text-blue-600 cursor-pointer"
-                />
-                <label htmlFor="hasDetailPage" className="font-semibold text-zinc-900 select-none cursor-pointer">
-                  Enable Case Study Page
-                </label>
+
+              {/* Case Study Toggle Switch */}
+              <div className="flex items-center gap-2.5 bg-blue-50/70 border border-blue-200/80 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
+                <span className="text-blue-950 font-semibold text-xs">Enable Case Study:</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={formData.hasDetailPage ?? true}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      hasDetailPage: !(prev.hasDetailPage ?? true),
+                    }))
+                  }
+                  className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    (formData.hasDetailPage ?? true) ? "bg-blue-600" : "bg-zinc-300"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                      (formData.hasDetailPage ?? true) ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </div>
             </div>
 
-            {formData.hasDetailPage && (
-              <div className="space-y-5 p-5 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+            {(formData.hasDetailPage ?? true) && (
+              <div className="space-y-6 p-5 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+                {/* Extended Overview with RichTextEditor */}
                 <div>
-                  <label className="form-label font-semibold text-zinc-900">Extended Overview (Case Study Story)</label>
-                  <textarea
-                    rows={4}
-                    value={formData.overview || ""}
-                    onChange={(e) => setFormData({ ...formData, overview: e.target.value })}
+                  <RichTextEditor
+                    label="Extended Overview (Case Study Story)"
+                    value={typeof formData.overview === "string" ? formData.overview : ""}
+                    onChange={(html) => setFormData({ ...formData, overview: html })}
                     placeholder="Comprehensive explanation of architectural design, scale, problem statement, and solution..."
-                    className="form-input bg-white resize-none"
+                    helperText="Format with headings, bold points, paragraphs, or story blocks."
                   />
                 </div>
 
-                {/* Case 5: Rich Text Editor for Key Features / Highlights */}
+                {/* Rich Text Editor for Key Features / Highlights */}
                 <div>
                   <RichTextEditor
                     label="Key Features & Architecture Highlights (Rich Text Editor)"

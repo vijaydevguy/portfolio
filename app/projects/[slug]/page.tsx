@@ -148,9 +148,16 @@ async function ProjectDetailContent({ params }: ProjectPageProps) {
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Overview
             </h2>
-            <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
-              {project.overview || project.shortDescription}
-            </p>
+            {project.overview && /<[a-z][\s\S]*>/i.test(project.overview) ? (
+              <div
+                className="prose prose-zinc max-w-none text-slate-700 text-base sm:text-lg leading-relaxed [&>p]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-2 [&>h3]:text-zinc-900 [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-4 [&>h3]:mb-2"
+                dangerouslySetInnerHTML={{ __html: project.overview }}
+              />
+            ) : (
+              <p className="text-base sm:text-lg text-slate-700 leading-relaxed whitespace-pre-line">
+                {project.overview || project.shortDescription}
+              </p>
+            )}
           </div>
 
           {/* Technologies Stack */}
