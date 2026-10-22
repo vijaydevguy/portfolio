@@ -4,7 +4,7 @@ import React, { useState, useEffect, use, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CONFIG } from "@/app/common";
-import MultiImageUploader from "@/app/components/ui/MultiImageUploader";
+import MultiImageUploader, { ImageItem } from "@/app/components/ui/MultiImageUploader";
 import RichTextEditor from "@/app/components/ui/RichTextEditor";
 import { ProjectItem } from "@/app/hooks/useProjectsData";
 import { useProjectOptions } from "@/app/hooks/useProjectOptions";
@@ -66,8 +66,11 @@ function EditProjectContent({ params }: EditProjectPageProps) {
   const [formData, setFormData] = useState<Partial<ProjectItem>>(() =>
     getInitialProjectState(defaultCategory, defaultType)
   );
+  // Image items state holding both existing URLs and local preview items
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<string>("");
 
   const [techInput, setTechInput] = useState("");
 
@@ -78,6 +81,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
     if (isNew) {
       // Form reset: immediately clear state to a fresh blank project
       setFormData(getInitialProjectState(defaultCategory, defaultType));
+      setImageItems([]);
       setLoading(false);
       return;
     }
@@ -106,6 +110,14 @@ function EditProjectContent({ params }: EditProjectPageProps) {
             ...data,
             keyFeatures: normalizedFeatures || "",
           });
+
+          // Initialize image items from existing preview images
+          const initialImgs: ImageItem[] = (data.previewImages || []).map((url: string, idx: number) => ({
+            id: `existing_${idx}_${url}`,
+            url,
+            isPending: false,
+          }));
+          setImageItems(initialImgs);
         } else {
           toast.error(json.message || "Project not found");
         }
@@ -133,8 +145,61 @@ function EditProjectContent({ params }: EditProjectPageProps) {
     }
 
     setIsSaving(true);
+    setSavingStatus("Preparing project...");
 
     try {
+      // 1. Check for any pending local images that need Cloudinary upload
+      const pendingFiles = imageItems.filter((item) => item.isPending && item.file);
+      let finalPreviewImages: string[] = [];
+
+      if (pendingFiles.length > 0) {
+        setSavingStatus(`Uploading ${pendingFiles.length} image(s) to Cloudinary...`);
+
+        const uploadFormData = new FormData();
+        pendingFiles.forEach((item) => {
+          if (item.file) uploadFormData.append("files", item.file);
+        });
+        uploadFormData.append("section", "projects");
+        uploadFormData.append("category", formData.slug || "gallery");
+
+        const uploadRes = await fetch(`${CONFIG.BACKEND_URL}/api/media/upload-bulk`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: uploadFormData,
+        });
+
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson.success) {
+          throw new Error(uploadJson.message || "Failed to upload screenshots to Cloudinary");
+        }
+
+        // Map uploaded assets back in the exact order user arranged them
+        const uploadedAssets: Array<{ url: string; originalName: string }> = uploadJson.assets || [];
+        let uploadIdx = 0;
+
+        finalPreviewImages = imageItems.map((item) => {
+          if (item.isPending && item.file) {
+            const uploaded = uploadedAssets[uploadIdx];
+            uploadIdx++;
+            return uploaded?.url || item.url;
+          }
+          return item.url;
+        });
+      } else {
+        // No pending files; preserve current order of existing URLs
+        finalPreviewImages = imageItems.map((item) => item.url);
+      }
+
+      setSavingStatus("Saving project details...");
+
+      // 2. Prepare payload with updated previewImages
+      const projectPayload = {
+        ...formData,
+        previewImages: finalPreviewImages,
+      };
+
       const url = isNew
         ? `${CONFIG.BACKEND_URL}/api/projects`
         : `${CONFIG.BACKEND_URL}/api/projects/${projectId}`;
@@ -146,7 +211,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(projectPayload),
       });
 
       const json = await res.json();
@@ -158,6 +223,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
       if (isNew) {
         setFormData(getInitialProjectState(defaultCategory, defaultType));
+        setImageItems([]);
         setTechInput("");
       }
 
@@ -168,6 +234,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
       toast.error(err.message || "Error saving project");
     } finally {
       setIsSaving(false);
+      setSavingStatus("");
     }
   };
 
@@ -417,16 +484,14 @@ function EditProjectContent({ params }: EditProjectPageProps) {
             </div>
           </div>
 
-          {/* Section 2: Single Multi-Image Uploader (Max 10 Images with Auto-Purge) */}
+          {/* Section 2: Single Multi-Image Uploader (Client Preview + Deferred Cloudinary Upload on Save) */}
           <div className="space-y-4 pt-6 border-t border-zinc-100">
             <MultiImageUploader
               label="Project Showcase Screenshots (Max 10 Images)"
-              images={formData.previewImages || []}
-              onChange={(imgs) => setFormData({ ...formData, previewImages: imgs })}
+              items={imageItems}
+              onChange={setImageItems}
               maxImages={10}
-              section="projects"
-              category={formData.slug || "gallery"}
-              helperText="Upload screenshots or paste direct URLs. Uploading beyond 10 replaces the oldest image."
+              helperText="Select multiple screenshots or paste direct URLs. Images preview instantly and only upload to Cloudinary when you save."
             />
           </div>
 
@@ -567,7 +632,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
               className="btn-primary !rounded-xl !py-2.5 !px-7 font-semibold flex items-center gap-2 cursor-pointer shadow-md"
             >
               {isSaving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-              <span>{isNew ? "Create & Publish Project" : "Save All Changes"}</span>
+              <span>{isSaving ? savingStatus || "Saving..." : isNew ? "Create & Publish Project" : "Save All Changes"}</span>
             </button>
           </div>
         </form>

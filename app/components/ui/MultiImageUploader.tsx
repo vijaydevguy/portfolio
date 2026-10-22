@@ -1,114 +1,114 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { CONFIG } from "../../common";
 import toast from "react-hot-toast";
+
+export interface ImageItem {
+  id: string; // unique key (timestamp or existing url)
+  url: string; // remote URL or blob: preview URL
+  file?: File; // present only for pending local uploads
+  isPending?: boolean; // true if not yet uploaded to Cloudinary
+}
 
 interface MultiImageUploaderProps {
   label: string;
-  images: string[];
-  onChange: (images: string[]) => void;
+  items: ImageItem[];
+  onChange: (items: ImageItem[]) => void;
   maxImages?: number; // default 10
-  section?: string;
-  category?: string;
   helperText?: string;
 }
 
 export default function MultiImageUploader({
   label,
-  images = [],
+  items = [],
   onChange,
   maxImages = 10,
-  section = "projects",
-  category = "gallery",
   helperText,
 }: MultiImageUploaderProps) {
   const [activeTab, setActiveTab] = useState<"upload" | "manual">("upload");
   const [manualUrl, setManualUrl] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadFile = async (file: File) => {
-    if (!file) return;
+  // Clean up any revoked blob URLs on component unmount
+  useEffect(() => {
+    return () => {
+      items.forEach((item) => {
+        if (item.url.startsWith("blob:")) {
+          URL.revokeObjectURL(item.url);
+        }
+      });
+    };
+  }, []);
 
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-      toast.error("Session expired. Please log in again.");
+  // Handle local file selection (single or multi-file)
+  const handleFilesSelected = (files: FileList | File[]) => {
+    const fileArray = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (fileArray.length === 0) {
+      toast.error("Please select valid image files (PNG, JPG, WebP, SVG).");
       return;
     }
 
-    setIsUploading(true);
+    const availableSlots = maxImages - items.length;
+    if (availableSlots <= 0) {
+      toast.error(`Maximum limit of ${maxImages} screenshots reached. Please remove one first.`);
+      return;
+    }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("section", section);
-    formData.append("category", category);
+    const filesToAdd = fileArray.slice(0, availableSlots);
+    if (fileArray.length > availableSlots) {
+      toast(`Added first ${availableSlots} images (Maximum limit ${maxImages}).`, { icon: "ℹ️" });
+    }
 
-    try {
-      const res = await fetch(`${CONFIG.BACKEND_URL}/api/media/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+    const newItems: ImageItem[] = filesToAdd.map((file) => ({
+      id: `pending_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      url: URL.createObjectURL(file), // Instant client-side blob preview (no API call)
+      file,
+      isPending: true,
+    }));
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Upload failed");
-      }
+    onChange([...items, ...newItems]);
+    toast.success(`${newItems.length} image(s) queued for upload!`);
 
-      const uploadedUrl = data.asset?.url || data.asset?.secureUrl || data.asset?.shortPath;
-      if (!uploadedUrl) {
-        throw new Error("No URL returned from upload server");
-      }
-
-      addImageToList(uploadedUrl);
-      toast.success("Image uploaded successfully");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload image");
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
-  const addImageToList = (newUrl: string) => {
-    if (!newUrl || !newUrl.trim()) return;
-    const cleanUrl = newUrl.trim();
-
-    let updated = [...images];
-    if (updated.length >= maxImages) {
-      // More than max 10: delete oldest / last image and append new image as requested
-      toast(`Max ${maxImages} images reached. Replaced oldest screenshot.`, {
-        icon: "ℹ️",
-      });
-      updated = [cleanUrl, ...updated.slice(0, maxImages - 1)];
-    } else {
-      updated = [...updated, cleanUrl];
-    }
-
-    onChange(updated);
-  };
-
+  // Add a direct manual image URL
   const handleAddManualUrl = () => {
-    if (!manualUrl.trim()) return;
-    addImageToList(manualUrl);
+    const trimmed = manualUrl.trim();
+    if (!trimmed) return;
+
+    if (items.length >= maxImages) {
+      toast.error(`Maximum limit of ${maxImages} screenshots reached.`);
+      return;
+    }
+
+    const newItem: ImageItem = {
+      id: `url_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      url: trimmed,
+      isPending: false,
+    };
+
+    onChange([...items, newItem]);
     setManualUrl("");
+    toast.success("Image URL added!");
   };
 
   const handleRemoveImage = (indexToRemove: number) => {
-    const updated = images.filter((_, i) => i !== indexToRemove);
+    const itemToRemove = items[indexToRemove];
+    if (itemToRemove?.url.startsWith("blob:")) {
+      URL.revokeObjectURL(itemToRemove.url);
+    }
+    const updated = items.filter((_, i) => i !== indexToRemove);
     onChange(updated);
   };
 
   const handleMoveImage = (fromIdx: number, toIdx: number) => {
-    if (toIdx < 0 || toIdx >= images.length) return;
-    const updated = [...images];
+    if (toIdx < 0 || toIdx >= items.length) return;
+    const updated = [...items];
     const [moved] = updated.splice(fromIdx, 1);
     updated.splice(toIdx, 0, moved);
     onChange(updated);
@@ -130,8 +130,8 @@ export default function MultiImageUploader({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUploadFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelected(e.dataTransfer.files);
     }
   };
 
@@ -142,14 +142,12 @@ export default function MultiImageUploader({
   const handleThumbnailDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData("text/plain", String(index));
     e.dataTransfer.effectAllowed = "move";
-    
-    // Create subtle custom drag ghost styling
+
     const target = e.currentTarget as HTMLElement;
     if (e.dataTransfer.setDragImage) {
       e.dataTransfer.setDragImage(target, target.offsetWidth / 2, target.offsetHeight / 2);
     }
-    
-    // Async set state so the source element isn't hidden before ghost is captured
+
     setTimeout(() => {
       setDraggedThumbnailIdx(index);
     }, 0);
@@ -171,7 +169,7 @@ export default function MultiImageUploader({
     const sourceIndex = sourceIndexStr ? parseInt(sourceIndexStr, 10) : draggedThumbnailIdx;
 
     if (sourceIndex !== null && !isNaN(sourceIndex) && sourceIndex !== targetIndex) {
-      const updated = [...images];
+      const updated = [...items];
       const [draggedItem] = updated.splice(sourceIndex, 1);
       updated.splice(targetIndex, 0, draggedItem);
       onChange(updated);
@@ -186,6 +184,8 @@ export default function MultiImageUploader({
     setDragOverThumbnailIdx(null);
   };
 
+  const pendingCount = items.filter((i) => i.isPending).length;
+
   return (
     <div className="space-y-3.5 text-xs">
       <div className="flex items-center justify-between">
@@ -193,9 +193,16 @@ export default function MultiImageUploader({
           <label className="form-label font-semibold text-zinc-900 !mb-0">{label}</label>
           {helperText && <p className="text-[11px] text-slate-500 mt-0.5">{helperText}</p>}
         </div>
-        <span className="text-[11px] font-mono text-slate-500 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200">
-          {images.length} / {maxImages} images
-        </span>
+        <div className="flex items-center gap-2">
+          {pendingCount > 0 && (
+            <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full">
+              {pendingCount} pending upload
+            </span>
+          )}
+          <span className="text-[11px] font-mono text-slate-500 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200">
+            {items.length} / {maxImages} images
+          </span>
+        </div>
       </div>
 
       {/* Mode Switcher Tabs */}
@@ -209,7 +216,7 @@ export default function MultiImageUploader({
               : "text-slate-500 hover:text-zinc-800"
           }`}
         >
-          Upload New Image
+          Select Local Images
         </button>
         <button
           type="button"
@@ -230,45 +237,39 @@ export default function MultiImageUploader({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={() => !isUploading && fileInputRef.current?.click()}
+          onClick={() => fileInputRef.current?.click()}
           className={`relative rounded-2xl border-2 border-dashed p-6 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer text-center ${
             isDragging
               ? "border-blue-500 bg-blue-50/80 scale-[1.005]"
               : "border-zinc-300 hover:border-zinc-400 bg-zinc-50/60 hover:bg-zinc-50"
-          } ${isUploading ? "opacity-60 pointer-events-none" : ""}`}
+          }`}
         >
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple // Multi-file selection support
             onChange={(e) => {
-              if (e.target.files?.[0]) handleUploadFile(e.target.files[0]);
+              if (e.target.files && e.target.files.length > 0) {
+                handleFilesSelected(e.target.files);
+              }
             }}
             className="hidden"
           />
 
-          {isUploading ? (
-            <div className="flex flex-col items-center gap-2 py-2">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-semibold text-zinc-700">Uploading to storage...</span>
-            </div>
-          ) : (
-            <>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1D4ED8] flex items-center justify-center shadow-2xs">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-zinc-800">
-                  <span className="text-blue-600 underline">Click to upload image</span> or drag and drop
-                </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  PNG, JPG, WebP, SVG • Maximum {maxImages} images (auto-purges oldest when exceeded)
-                </p>
-              </div>
-            </>
-          )}
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1D4ED8] flex items-center justify-center shadow-2xs">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-zinc-800">
+              <span className="text-blue-600 underline">Select multiple images</span> or drag and drop
+            </p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              PNG, JPG, WebP, SVG • Instant client preview • Uploads to Cloudinary only when project is saved
+            </p>
+          </div>
         </div>
       ) : (
         <div className="flex gap-2">
@@ -295,13 +296,13 @@ export default function MultiImageUploader({
         </div>
       )}
 
-      {/* Render Current Images Grid with Modern Drag and Drop UI */}
-      {images.length > 0 && (
+      {/* Render Current Images Grid with Drag and Drop UI */}
+      {items.length > 0 && (
         <div className="space-y-2.5 pt-3 border-t border-zinc-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-zinc-900 font-heading">
-                Project Screenshots ({images.length} of {maxImages})
+                Project Screenshots ({items.length} of {maxImages})
               </span>
               <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-medium border border-blue-100/80">
                 1st is Primary Cover
@@ -316,13 +317,13 @@ export default function MultiImageUploader({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 pt-1">
-            {images.map((imgUrl, idx) => {
+            {items.map((item, idx) => {
               const isBeingDragged = draggedThumbnailIdx === idx;
               const isOver = dragOverThumbnailIdx === idx && !isBeingDragged;
 
               return (
                 <div
-                  key={`${imgUrl}-${idx}`}
+                  key={item.id || `${item.url}-${idx}`}
                   draggable
                   onDragStart={(e) => handleThumbnailDragStart(e, idx)}
                   onDragOver={(e) => handleThumbnailDragOver(e, idx)}
@@ -344,28 +345,30 @@ export default function MultiImageUploader({
                   {/* Thumbnail Container */}
                   <div className="relative aspect-[16/10] w-full bg-zinc-100 overflow-hidden rounded-t-2xl">
                     <Image
-                      src={imgUrl}
+                      src={item.url}
                       alt={`Screenshot ${idx + 1}`}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
                       unoptimized
                     />
 
-                    {/* Gradient overlay on hover for crisp visibility */}
+                    {/* Gradient overlay on hover for visibility */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
 
                     {/* Top Row: Cover/Badge on Left & Delete Button on Right */}
                     <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
                       {/* Number / Cover badge */}
-                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold backdrop-blur-md shadow-sm pointer-events-none ${
-                        idx === 0
-                          ? "bg-blue-600 text-white border border-blue-400/50"
-                          : "bg-black/70 text-white font-mono border border-white/10"
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold backdrop-blur-md shadow-sm pointer-events-none ${
+                          idx === 0
+                            ? "bg-blue-600 text-white border border-blue-400/50"
+                            : "bg-black/70 text-white font-mono border border-white/10"
+                        }`}
+                      >
                         {idx === 0 ? "Cover #1" : `#${idx + 1}`}
                       </span>
 
-                      {/* Delete Button: ONLY shown on hover, red border & red icon */}
+                      {/* Delete Button */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -382,7 +385,16 @@ export default function MultiImageUploader({
                       </button>
                     </div>
 
-                    {/* Center Drag Handle Indicator: Visible on Hover */}
+                    {/* Pending Upload Indicator Pill */}
+                    {item.isPending && (
+                      <div className="absolute bottom-2 left-2 z-10">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-500/90 text-white backdrop-blur-xs shadow-xs">
+                          Pending Save
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Center Drag Handle Indicator */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
                       <div className="px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-xl border border-white/20 cursor-grab active:cursor-grabbing">
                         <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -421,7 +433,7 @@ export default function MultiImageUploader({
                       </button>
                       <button
                         type="button"
-                        disabled={idx === images.length - 1}
+                        disabled={idx === items.length - 1}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveImage(idx, idx + 1);
