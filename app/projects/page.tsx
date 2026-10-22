@@ -26,13 +26,15 @@ export default function AllProjectsPage() {
 
   // Backend pagination state
   const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
-  // Sentinel ref for IntersectionObserver
+  // Synchronization refs to prevent re-entrant or duplicate IntersectionObserver triggers
+  const pageRef = useRef<number>(1);
+  const isFetchingRef = useRef<boolean>(false);
+  const hasMoreRef = useRef<boolean>(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Debounce search input by 300ms
@@ -74,9 +76,12 @@ export default function AllProjectsPage() {
     return count;
   }, [selectedCategory, selectedProjectType]);
 
-  // Fetch projects from backend with page, limit, category, projectType, and search query
+  // Fetch projects from backend with strict deduplication and loop protection
   const fetchPage = useCallback(
     async (targetPage: number, append: boolean = false) => {
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
       if (append) {
         setIsLoadingMore(true);
       } else {
@@ -103,55 +108,73 @@ export default function AllProjectsPage() {
         const json = await res.json();
 
         if (res.ok && json.success && Array.isArray(json.data)) {
-          setProjects((prev) => (append ? [...prev, ...json.data] : json.data));
-          setHasMore(Boolean(json.hasMore));
-          setTotal(json.total ?? json.data.length);
-          setPage(targetPage);
+          const newItems: ProjectItem[] = json.data;
+          const newHasMore = Boolean(json.hasMore);
+
+          setProjects((prev) => {
+            if (!append) return newItems;
+            // Strict deduplication by _id / id / slug
+            const existingKeys = new Set(
+              prev.map((p) => (p._id || p.id || p.slug).toString())
+            );
+            const freshItems = newItems.filter(
+              (p) => !existingKeys.has((p._id || p.id || p.slug).toString())
+            );
+            return [...prev, ...freshItems];
+          });
+
+          pageRef.current = targetPage;
+          hasMoreRef.current = newHasMore;
+          setHasMore(newHasMore);
+          setTotal(json.total ?? newItems.length);
         }
       } catch (err) {
         console.error("Error fetching paginated projects:", err);
       } finally {
         setLoading(false);
         setIsLoadingMore(false);
+        isFetchingRef.current = false;
       }
     },
     [selectedCategory, selectedProjectType, debouncedQuery]
   );
 
-  // Trigger new fetch from page 1 whenever filters or search query change
+  // Trigger fresh fetch from page 1 whenever filters or search query change
   useEffect(() => {
+    pageRef.current = 1;
+    hasMoreRef.current = false;
     fetchPage(1, false);
   }, [fetchPage]);
 
-  // IntersectionObserver: automatically loads next page from backend when sentinel enters viewport
+  // IntersectionObserver: triggered when loadMoreRef sentinel enters view
   useEffect(() => {
-    if (!hasMore || loading || isLoadingMore) return;
-
-    const currentTarget = loadMoreRef.current;
-    if (!currentTarget) return;
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
-        if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
-          fetchPage(page + 1, true);
+        if (
+          first.isIntersecting &&
+          hasMoreRef.current &&
+          !isFetchingRef.current
+        ) {
+          fetchPage(pageRef.current + 1, true);
         }
       },
       {
         root: null,
-        rootMargin: "250px", // Pre-fetch next page 250px before user hits absolute bottom
+        rootMargin: "150px",
         threshold: 0.1,
       }
     );
 
-    observer.observe(currentTarget);
+    observer.observe(sentinel);
 
     return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
+      observer.disconnect();
     };
-  }, [hasMore, loading, isLoadingMore, page, fetchPage]);
+  }, [fetchPage, hasMore, loading]);
 
   const isFiltered =
     selectedCategory !== "All" ||
