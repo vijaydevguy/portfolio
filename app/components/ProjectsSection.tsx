@@ -25,18 +25,18 @@ export default function ProjectsSection() {
   return (
     <section id="projects" className="w-full bg-white py-20 lg:py-28 relative">
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header & Category Filter */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
+        {/* Section Header (Centered like other sections, filter commented out) */}
+        <div className="flex flex-col items-center justify-center text-center mb-16">
           <SectionHeading
             badge="Featured Work"
             title="Selected"
             highlightedText="Projects"
             description="A curated collection of full-stack platforms, modern web applications, and UI/UX systems."
-            alignment="left"
+            alignment="center"
           />
 
-          {/* Category Filter Tabs */}
-          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 self-start md:self-auto font-heading">
+          {/* Category Filter Tabs - Commented out for landing page
+          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 self-start md:self-auto font-heading mt-6">
             {categoryNames.map((cat) => {
               const isActive = activeCategory === cat;
               return (
@@ -66,6 +66,7 @@ export default function ProjectsSection() {
               );
             })}
           </div>
+          */}
         </div>
 
         {/* Project Cards Grid (Top 3) */}
