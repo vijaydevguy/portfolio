@@ -10,13 +10,13 @@ import { ProjectItem } from "@/app/hooks/useProjectsData";
 import { useProjectOptions } from "@/app/hooks/useProjectOptions";
 import toast from "react-hot-toast";
 
-const INITIAL_PROJECT_STATE: Partial<ProjectItem> = {
+const getInitialProjectState = (defaultCategory = "Development", defaultType = "Personal"): Partial<ProjectItem> => ({
   title: "",
   slug: "",
-  category: "Development",
-  projectType: "Personal",
+  category: defaultCategory,
+  projectType: defaultType,
   shortDescription: "",
-  technologies: ["React.js", "Node.js"],
+  technologies: [],
   previewImages: [],
   hasDetailPage: true,
   liveUrl: "",
@@ -27,7 +27,7 @@ const INITIAL_PROJECT_STATE: Partial<ProjectItem> = {
   order: 0,
   isVisible: true,
   isFeaturedOnHome: false,
-};
+});
 
 interface EditProjectPageProps {
   params: Promise<{
@@ -60,15 +60,27 @@ function EditProjectContent({ params }: EditProjectPageProps) {
   const router = useRouter();
   const { categories, projectTypes } = useProjectOptions();
 
-  const [formData, setFormData] = useState<Partial<ProjectItem>>(INITIAL_PROJECT_STATE);
+  const defaultCategory = categories[0]?.name || "Development";
+  const defaultType = projectTypes[0]?.name || "Personal";
+
+  const [formData, setFormData] = useState<Partial<ProjectItem>>(() =>
+    getInitialProjectState(defaultCategory, defaultType)
+  );
   const [loading, setLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
 
   const [techInput, setTechInput] = useState("");
 
-  // Fetch project data if editing
+  // Cleanly reset or fetch project data whenever projectId or isNew changes
   useEffect(() => {
-    if (isNew) return;
+    setTechInput("");
+
+    if (isNew) {
+      // Form reset: immediately clear state to a fresh blank project
+      setFormData(getInitialProjectState(defaultCategory, defaultType));
+      setLoading(false);
+      return;
+    }
 
     const token = localStorage.getItem("admin_token");
     if (!token) {
@@ -105,7 +117,7 @@ function EditProjectContent({ params }: EditProjectPageProps) {
     };
 
     fetchProject();
-  }, [projectId, isNew, router]);
+  }, [projectId, isNew, defaultCategory, defaultType, router]);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -144,9 +156,14 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
       toast.success(isNew ? "Project created successfully!" : "Project updated successfully!");
 
+      if (isNew) {
+        setFormData(getInitialProjectState(defaultCategory, defaultType));
+        setTechInput("");
+      }
+
       setTimeout(() => {
         router.push("/admin/edit?tab=projects");
-      }, 1000);
+      }, 800);
     } catch (err: any) {
       toast.error(err.message || "Error saving project");
     } finally {
