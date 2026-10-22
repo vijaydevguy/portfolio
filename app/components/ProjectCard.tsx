@@ -70,8 +70,9 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
           </motion.div>
         </AnimatePresence>
 
-        {/* Subtle top vignette gradient for badge visibility */}
-        <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/35 via-black/10 to-transparent pointer-events-none z-10" />
+        {/* Subtle top & bottom vignette gradients for badge visibility */}
+        <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/40 via-black/10 to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/45 via-black/15 to-transparent pointer-events-none z-10" />
 
         {/* Top-Left: Project Type Badge (Hidden when Personal as per design preference) */}
         <div className="absolute top-3.5 left-3.5 z-20 pointer-events-none">
@@ -97,10 +98,19 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
           )}
         </div>
 
-        {/* Top-Right: Image Dots Indicator */}
+        {/* Top-Right Corner: Project Category Badge */}
+        {project.category && (
+          <div className="absolute top-3.5 right-3.5 z-20 pointer-events-none">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-black/60 text-white backdrop-blur-md border border-white/20 shadow-sm">
+              {project.category}
+            </span>
+          </div>
+        )}
+
+        {/* Bottom Center: Slider Dots Indicator */}
         {previewImages.length > 1 && (
-          <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-sm">
-            {previewImages.slice(0, 3).map((_, idx) => (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/20 shadow-md">
+            {previewImages.slice(0, 5).map((_, idx) => (
               <button
                 key={idx}
                 type="button"
@@ -110,7 +120,7 @@ export default function ProjectCard({ project }: { project: ProjectItem }) {
                   setActiveImageIndex(idx);
                 }}
                 aria-label={`View preview ${idx + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   activeImageIndex === idx
                     ? "w-4 bg-white"
                     : "w-1.5 bg-white/50 hover:bg-white/80"

@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useProjectsData, ProjectItem } from "@/app/hooks/useProjectsData";
 import { useProjectOptions } from "@/app/hooks/useProjectOptions";
+import { ProjectItem } from "@/app/hooks/useProjectsData";
+import { CONFIG } from "@/app/common";
 import ProjectCard from "@/app/components/ProjectCard";
 
+const PAGE_LIMIT = 6;
+
 export default function AllProjectsPage() {
-  const { projects, loading } = useProjectsData("All");
   const { categories, projectTypes } = useProjectOptions();
 
   // Search input state with debouncing
@@ -22,11 +24,22 @@ export default function AllProjectsPage() {
   // Sidebar filter drawer state
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Debounce search query by 250ms for smooth instantaneous typing
+  // Backend pagination state
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
+  // Sentinel ref for IntersectionObserver
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Debounce search input by 300ms
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchInput);
-    }, 250);
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
@@ -53,7 +66,7 @@ export default function AllProjectsPage() {
     return Array.from(new Set(list));
   }, [projectTypes]);
 
-  // Active filters count for the badge on the filter icon
+  // Active filters count for badge on filter icon
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (selectedCategory !== "All") count += 1;
@@ -61,37 +74,84 @@ export default function AllProjectsPage() {
     return count;
   }, [selectedCategory, selectedProjectType]);
 
-  // Combined client-side filtering: debounced search query + category + project type
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project: ProjectItem) => {
-      // 1. Category match
-      if (selectedCategory !== "All" && project.category !== selectedCategory) {
-        return false;
+  // Fetch projects from backend with page, limit, category, projectType, and search query
+  const fetchPage = useCallback(
+    async (targetPage: number, append: boolean = false) => {
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setLoading(true);
       }
 
-      // 2. Project Type match (e.g. Professional vs Personal)
-      if (selectedProjectType !== "All" && project.projectType !== selectedProjectType) {
-        return false;
-      }
+      try {
+        const params = new URLSearchParams();
+        params.set("page", targetPage.toString());
+        params.set("limit", PAGE_LIMIT.toString());
 
-      // 3. Search query match across title, description, technologies, and role
-      if (debouncedQuery.trim()) {
-        const query = debouncedQuery.toLowerCase().trim();
-        const titleMatch = project.title?.toLowerCase().includes(query);
-        const descMatch = project.shortDescription?.toLowerCase().includes(query);
-        const roleMatch = project.role?.toLowerCase().includes(query);
-        const techMatch = (project.technologies || []).some((t) =>
-          t.toLowerCase().includes(query)
-        );
-
-        if (!titleMatch && !descMatch && !roleMatch && !techMatch) {
-          return false;
+        if (selectedCategory !== "All") {
+          params.set("category", selectedCategory);
         }
-      }
+        if (selectedProjectType !== "All") {
+          params.set("projectType", selectedProjectType);
+        }
+        if (debouncedQuery.trim()) {
+          params.set("search", debouncedQuery.trim());
+        }
 
-      return true;
-    });
-  }, [projects, selectedCategory, selectedProjectType, debouncedQuery]);
+        const url = `${CONFIG.BACKEND_URL}/api/projects?${params.toString()}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (res.ok && json.success && Array.isArray(json.data)) {
+          setProjects((prev) => (append ? [...prev, ...json.data] : json.data));
+          setHasMore(Boolean(json.hasMore));
+          setTotal(json.total ?? json.data.length);
+          setPage(targetPage);
+        }
+      } catch (err) {
+        console.error("Error fetching paginated projects:", err);
+      } finally {
+        setLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [selectedCategory, selectedProjectType, debouncedQuery]
+  );
+
+  // Trigger new fetch from page 1 whenever filters or search query change
+  useEffect(() => {
+    fetchPage(1, false);
+  }, [fetchPage]);
+
+  // IntersectionObserver: automatically loads next page from backend when sentinel enters viewport
+  useEffect(() => {
+    if (!hasMore || loading || isLoadingMore) return;
+
+    const currentTarget = loadMoreRef.current;
+    if (!currentTarget) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
+          fetchPage(page + 1, true);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "250px", // Pre-fetch next page 250px before user hits absolute bottom
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(currentTarget);
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, isLoadingMore, page, fetchPage]);
 
   const isFiltered =
     selectedCategory !== "All" ||
@@ -218,7 +278,7 @@ export default function AllProjectsPage() {
           </div>
         </div>
 
-        {/* Active Filter Tags Bar (if any category or project type is selected) */}
+        {/* Active Filter Tags Bar */}
         {isFiltered && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <span className="text-xs font-semibold text-slate-400">Active:</span>
@@ -291,14 +351,29 @@ export default function AllProjectsPage() {
               </div>
             ))}
           </div>
-        ) : filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project: ProjectItem) => (
-              <ProjectCard
-                key={project._id || project.id || project.slug}
-                project={project as any}
-              />
-            ))}
+        ) : projects.length > 0 ? (
+          <div className="space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {projects.map((project: ProjectItem) => (
+                <ProjectCard
+                  key={project._id || project.id || project.slug}
+                  project={project as any}
+                />
+              ))}
+            </div>
+
+            {/* IntersectionObserver Sentinel & Loading Indicator */}
+            {hasMore && (
+              <div
+                ref={loadMoreRef}
+                className="w-full py-8 flex flex-col items-center justify-center gap-2"
+              >
+                <div className="w-7 h-7 rounded-full border-2 border-zinc-300 border-t-zinc-900 animate-spin" />
+                <span className="text-xs text-slate-400 font-medium tracking-wide">
+                  Loading more projects...
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-20 bg-zinc-50 rounded-3xl border border-dashed border-zinc-300 space-y-3">

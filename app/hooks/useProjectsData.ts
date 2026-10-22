@@ -24,20 +24,50 @@ export interface ProjectItem {
   isFeaturedOnHome?: boolean;
 }
 
-export function useProjectsData(category: string = "All", options: { home?: boolean } = {}) {
+export interface UseProjectsOptions {
+  home?: boolean;
+  page?: number;
+  limit?: number;
+  search?: string;
+  projectType?: string;
+}
+
+export function useProjectsData(
+  category: string = "All",
+  options: UseProjectsOptions = {}
+) {
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  const { home, page, limit, search, projectType } = options;
 
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (options.home) {
+      if (home) {
         params.set("home", "true");
-      } else if (category && category !== "All") {
-        params.set("category", category);
+      } else {
+        if (category && category !== "All") {
+          params.set("category", category);
+        }
+        if (projectType && projectType !== "All") {
+          params.set("projectType", projectType);
+        }
+        if (search && search.trim()) {
+          params.set("search", search.trim());
+        }
+        if (page) {
+          params.set("page", page.toString());
+        }
+        if (limit) {
+          params.set("limit", limit.toString());
+        }
       }
 
       const queryString = params.toString();
@@ -48,6 +78,9 @@ export function useProjectsData(category: string = "All", options: { home?: bool
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           setProjects(json.data);
+          setTotal(json.total ?? json.data.length);
+          setHasMore(Boolean(json.hasMore));
+          setTotalPages(json.totalPages ?? 1);
         } else {
           setError(json.message || "Failed to load projects");
         }
@@ -60,7 +93,7 @@ export function useProjectsData(category: string = "All", options: { home?: bool
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, [category, home, page, limit, search, projectType]);
 
   useEffect(() => {
     fetchProjects();
@@ -70,6 +103,9 @@ export function useProjectsData(category: string = "All", options: { home?: bool
     projects,
     loading,
     error,
+    total,
+    hasMore,
+    totalPages,
     refresh: fetchProjects,
   };
 }
