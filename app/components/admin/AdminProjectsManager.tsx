@@ -291,8 +291,8 @@ export default function AdminProjectsManager() {
                     className="hover:bg-zinc-50/60 transition-colors"
                   >
                     {/* Project & Path */}
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
+                    <td className="py-3 px-4 max-w-[240px] sm:max-w-[320px]">
+                      <div className="flex items-center gap-3 min-w-0">
                         {thumb ? (
                           <div className="w-12 h-8 rounded-lg bg-zinc-100 overflow-hidden relative border border-zinc-200 flex-shrink-0">
                             <Image
@@ -308,12 +308,18 @@ export default function AdminProjectsManager() {
                             No Img
                           </div>
                         )}
-                        <div>
-                          <div className="font-bold text-zinc-900">
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className="font-bold text-zinc-900 truncate"
+                            title={p.title}
+                          >
                             {p.title}
                           </div>
                           {/* Show path cleanly */}
-                          <div className="text-[10px] text-slate-400 font-mono">
+                          <div
+                            className="text-[10px] text-slate-400 font-mono truncate"
+                            title={`/projects/${p.slug}`}
+                          >
                             /projects/{p.slug}
                           </div>
                         </div>

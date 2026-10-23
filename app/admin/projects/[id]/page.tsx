@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, Suspense } from "react";
+import React, { useState, useEffect, useRef, use, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CONFIG } from "@/app/common";
@@ -8,6 +8,7 @@ import MultiImageUploader, { ImageItem } from "@/app/components/ui/MultiImageUpl
 import RichTextEditor from "@/app/components/ui/RichTextEditor";
 import { ProjectItem } from "@/app/hooks/useProjectsData";
 import { useProjectOptions } from "@/app/hooks/useProjectOptions";
+import { triggerSessionExpired } from "@/app/context/AuthContext";
 import toast from "react-hot-toast";
 
 const getInitialProjectState = (defaultCategory = "Development", defaultType = "Personal"): Partial<ProjectItem> => ({
@@ -66,24 +67,50 @@ function EditProjectContent({ params }: EditProjectPageProps) {
   const [formData, setFormData] = useState<Partial<ProjectItem>>(() =>
     getInitialProjectState(defaultCategory, defaultType)
   );
+
   // Image items state holding both existing URLs and local preview items
   const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [savingStatus, setSavingStatus] = useState<string>("");
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
 
   const [techInput, setTechInput] = useState("");
   const [draggedTechIdx, setDraggedTechIdx] = useState<number | null>(null);
   const [dragOverTechIdx, setDragOverTechIdx] = useState<number | null>(null);
 
-  // Cleanly reset or fetch project data whenever projectId or isNew changes
+  // Storage key: separate draft keys for new projects vs specific editing project
+  const storageKey = isNew ? "project_form_draft_new" : `project_form_draft_${projectId}`;
+
+  // Once mounted on client, verify draft restoration for new project or fetch from server for existing
   useEffect(() => {
+    setIsClient(true);
     setTechInput("");
 
     if (isNew) {
-      // Form reset: immediately clear state to a fresh blank project
-      setFormData(getInitialProjectState(defaultCategory, defaultType));
-      setImageItems([]);
+      // Check if a saved draft exists in localStorage for new project
+      try {
+        const savedDraft = localStorage.getItem("project_form_draft_new");
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed && typeof parsed === "object") {
+            setFormData(parsed);
+            if (Array.isArray(parsed.savedImageUrls) && parsed.savedImageUrls.length > 0) {
+              setImageItems(
+                parsed.savedImageUrls.map((url: string, idx: number) => ({
+                  id: `draft_img_${idx}_${url}`,
+                  url,
+                  isPending: false,
+                }))
+              );
+            }
+            setIsDraftSaved(true);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load draft from localStorage:", err);
+      }
       setLoading(false);
       return;
     }
@@ -97,30 +124,66 @@ function EditProjectContent({ params }: EditProjectPageProps) {
     const fetchProject = async () => {
       setLoading(true);
       try {
+        // Check if an unsaved edit draft exists
+        const editDraftKey = `project_form_draft_${projectId}`;
+        let restoredFromDraft = false;
+        try {
+          const savedDraft = localStorage.getItem(editDraftKey);
+          if (savedDraft) {
+            const parsed = JSON.parse(savedDraft);
+            if (parsed && typeof parsed === "object") {
+              setFormData((prev) => ({
+                ...prev,
+                ...parsed,
+              }));
+              if (Array.isArray(parsed.savedImageUrls) && parsed.savedImageUrls.length > 0) {
+                setImageItems(
+                  parsed.savedImageUrls.map((url: string, idx: number) => ({
+                    id: `draft_img_${idx}_${url}`,
+                    url,
+                    isPending: false,
+                  }))
+                );
+              }
+              restoredFromDraft = true;
+            }
+          }
+        } catch (e) {
+          console.warn("Could not load edit draft:", e);
+        }
+
         const res = await fetch(`${CONFIG.BACKEND_URL}/api/projects/admin/single/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (res.status === 401 || res.status === 403) {
+          triggerSessionExpired();
+          return;
+        }
+
         const json = await res.json();
         if (res.ok && json.success && json.data) {
           const data = json.data;
-          // Normalize keyFeatures to string for RichTextEditor if it was an array
-          let normalizedFeatures = data.keyFeatures;
-          if (Array.isArray(normalizedFeatures)) {
-            normalizedFeatures = `<ul>${normalizedFeatures.map((f: string) => `<li>${f}</li>`).join("")}</ul>`;
-          }
-          setFormData({
-            ...data,
-            keyFeatures: normalizedFeatures || "",
-          });
+          // If we haven't restored from an unsaved draft, load the latest server state
+          if (!restoredFromDraft) {
+            let normalizedFeatures = data.keyFeatures;
+            if (Array.isArray(normalizedFeatures)) {
+              normalizedFeatures = `<ul>${normalizedFeatures.map((f: string) => `<li>${f}</li>`).join("")}</ul>`;
+            }
+            setFormData({
+              ...data,
+              keyFeatures: normalizedFeatures || "",
+            });
 
-          // Initialize image items from existing preview images
-          const initialImgs: ImageItem[] = (data.previewImages || []).map((url: string, idx: number) => ({
-            id: `existing_${idx}_${url}`,
-            url,
-            isPending: false,
-          }));
-          setImageItems(initialImgs);
-        } else {
+            // Initialize image items from existing preview images
+            const initialImgs: ImageItem[] = (data.previewImages || []).map((url: string, idx: number) => ({
+              id: `existing_${idx}_${url}`,
+              url,
+              isPending: false,
+            }));
+            setImageItems(initialImgs);
+          }
+        } else if (!restoredFromDraft) {
           toast.error(json.message || "Project not found");
         }
       } catch {
@@ -131,99 +194,173 @@ function EditProjectContent({ params }: EditProjectPageProps) {
     };
 
     fetchProject();
-  }, [projectId, isNew, defaultCategory, defaultType, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, isNew, router]);
 
-  const handleSave = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Auto-persist formData and existing image URLs to localStorage whenever modified
+  useEffect(() => {
+    if (loading) return;
+
+    try {
+      // Check if user has entered anything meaningful
+      const hasContent = Boolean(
+        formData.title?.trim() ||
+        formData.shortDescription?.trim() ||
+        formData.overview?.trim() ||
+        formData.liveUrl?.trim() ||
+        formData.githubUrl?.trim() ||
+        (Array.isArray(formData.technologies) && formData.technologies.length > 0) ||
+        (typeof formData.keyFeatures === "string" && formData.keyFeatures.trim())
+      );
+
+      // Only save if there is actually content entered
+      if (hasContent) {
+        const savedImageUrls = imageItems
+          .filter((item) => item.url && !item.url.startsWith("blob:"))
+          .map((item) => item.url as string);
+
+        const draftPayload = {
+          ...formData,
+          savedImageUrls,
+        };
+
+        localStorage.setItem(storageKey, JSON.stringify(draftPayload));
+      }
+    } catch (err) {
+      console.warn("Could not persist form draft:", err);
+    }
+  }, [formData, imageItems, storageKey, loading]);
+
+  // Helper to discard the local draft and reset
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {}
+    setIsDraftSaved(false);
+    if (isNew) {
+      setFormData(getInitialProjectState(defaultCategory, defaultType));
+      setImageItems([]);
+      toast.success("Form cleared");
+    } else {
+      window.location.reload();
+    }
+  };
+
+  /**
+   * Save handler supporting:
+   * 1. saveAsDraft: true -> calls API with isVisible: false (stored in DB without publishing)
+   * 2. saveAsDraft: false -> publishes or saves changes
+   */
+  const handleSave = async (options?: { isDraft?: boolean }) => {
+    const isDraft = Boolean(options?.isDraft);
     const token = localStorage.getItem("admin_token");
     if (!token) {
-      router.push("/admin");
+      triggerSessionExpired();
       return;
     }
 
     if (!formData.title?.trim()) {
-      toast.error("Project title is required");
+      toast.error("Project title is required to save");
       return;
     }
 
     setIsSaving(true);
-    setSavingStatus("Preparing project...");
+    setSavingStatus(isDraft ? "Saving project as unpublished draft..." : "Saving & publishing project...");
 
     try {
-      // 1. Check for any pending local images that need Cloudinary upload
-      const pendingFiles = imageItems.filter((item) => item.isPending && item.file);
-      let finalPreviewImages: string[] = [];
+      // 1. Construct single FormData payload for project details and any pending local images
+      const uploadFormData = new FormData();
 
-      if (pendingFiles.length > 0) {
-        setSavingStatus(`Uploading ${pendingFiles.length} image(s) to Cloudinary...`);
+      // Append standard text/scalar fields
+      uploadFormData.append("title", formData.title || "");
+      uploadFormData.append("slug", formData.slug || "");
+      uploadFormData.append("category", formData.category || defaultCategory);
+      uploadFormData.append("projectType", formData.projectType || defaultType);
+      uploadFormData.append("role", formData.role || "");
+      uploadFormData.append("order", String(formData.order ?? 0));
+      uploadFormData.append("shortDescription", formData.shortDescription || "");
+      uploadFormData.append("liveUrl", formData.liveUrl || "");
+      uploadFormData.append("githubUrl", formData.githubUrl || "");
+      uploadFormData.append("overview", formData.overview || "");
+      uploadFormData.append("keyFeatures", typeof formData.keyFeatures === "string" ? formData.keyFeatures : JSON.stringify(formData.keyFeatures || []));
+      uploadFormData.append("hasDetailPage", String(formData.hasDetailPage ?? true));
 
-        const uploadFormData = new FormData();
-        pendingFiles.forEach((item) => {
-          if (item.file) uploadFormData.append("files", item.file);
-        });
-        uploadFormData.append("section", "projects");
-        uploadFormData.append("category", formData.slug || "gallery");
+      // Key difference: when saving as draft, set isVisible=false and isFeaturedOnHome=false
+      uploadFormData.append("isVisible", String(isDraft ? false : (formData.isVisible ?? true)));
+      uploadFormData.append("isFeaturedOnHome", String(isDraft ? false : (formData.isFeaturedOnHome ?? false)));
 
-        const uploadRes = await fetch(`${CONFIG.BACKEND_URL}/api/media/upload-bulk`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: uploadFormData,
-        });
-
-        const uploadJson = await uploadRes.json();
-        if (!uploadRes.ok || !uploadJson.success) {
-          throw new Error(uploadJson.message || "Failed to upload screenshots to Cloudinary");
-        }
-
-        // Map uploaded assets back in the exact order user arranged them
-        const uploadedAssets: Array<{ url: string; originalName: string }> = uploadJson.assets || [];
-        let uploadIdx = 0;
-
-        finalPreviewImages = imageItems.map((item) => {
-          if (item.isPending && item.file) {
-            const uploaded = uploadedAssets[uploadIdx];
-            uploadIdx++;
-            return uploaded?.url || item.url;
-          }
-          return item.url;
-        });
-      } else {
-        // No pending files; preserve current order of existing URLs
-        finalPreviewImages = imageItems.map((item) => item.url);
+      if (Array.isArray(formData.technologies)) {
+        uploadFormData.append("technologies", JSON.stringify(formData.technologies));
       }
 
-      setSavingStatus("Saving project details...");
+      // Reconstruct image order tokens and append any pending files
+      const imageOrderTokens: string[] = [];
+      const existingUrls: string[] = [];
+      let pendingFileIdx = 0;
 
-      // 2. Prepare payload with updated previewImages
-      const projectPayload = {
-        ...formData,
-        previewImages: finalPreviewImages,
-      };
+      imageItems.forEach((item) => {
+        if (item.isPending && item.file) {
+          uploadFormData.append("files", item.file);
+          imageOrderTokens.push(`file:${pendingFileIdx}`);
+          pendingFileIdx++;
+        } else if (item.url && !item.url.startsWith("blob:")) {
+          imageOrderTokens.push(item.url);
+          existingUrls.push(item.url);
+        }
+      });
+
+      uploadFormData.append("imageOrder", JSON.stringify(imageOrderTokens));
+      uploadFormData.append("previewImages", JSON.stringify(existingUrls));
 
       const url = isNew
         ? `${CONFIG.BACKEND_URL}/api/projects`
         : `${CONFIG.BACKEND_URL}/api/projects/${projectId}`;
       const method = isNew ? "POST" : "PUT";
 
+      // 2. Single API Call: uploads files concurrently and saves to MongoDB
       const res = await fetch(url, {
         method,
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectPayload),
+        body: uploadFormData,
       });
+
+      if (res.status === 401 || res.status === 403) {
+        triggerSessionExpired();
+        return;
+      }
 
       const json = await res.json();
       if (!res.ok || !json.success) {
         throw new Error(json.message || "Failed to save project");
       }
 
-      toast.success(isNew ? "Project created successfully!" : "Project updated successfully!");
+      // 3. Inspect if any individual image uploads failed
+      const failedUploads: Array<{ originalName: string; reason: string }> = json.failedUploads || [];
+      if (failedUploads.length > 0) {
+        const failedNames = failedUploads.map((f) => `• ${f.originalName}: ${f.reason}`).join("\n");
+        toast.error(
+          `Project saved in database, but ${failedUploads.length} image(s) failed to upload:\n${failedNames}`,
+          { duration: 7000 }
+        );
+      } else {
+        toast.success(
+          isDraft
+            ? "Project saved as draft in database (unpublished)!"
+            : isNew
+            ? "Project created and published successfully!"
+            : "Project updated successfully!"
+        );
+      }
 
-      if (isNew) {
+      // Clear saved draft from localStorage on success
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {}
+      setIsDraftSaved(true);
+
+      if (isNew && !isDraft) {
         setFormData(getInitialProjectState(defaultCategory, defaultType));
         setImageItems([]);
         setTechInput("");
@@ -231,13 +368,17 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
       setTimeout(() => {
         router.push("/admin/edit?tab=projects");
-      }, 800);
+      }, 1000);
     } catch (err: any) {
       toast.error(err.message || "Error saving project");
     } finally {
       setIsSaving(false);
       setSavingStatus("");
     }
+  };
+
+  const handleSaveAsDraft = () => {
+    handleSave({ isDraft: true });
   };
 
   // Technologies Tag Handlers
@@ -339,16 +480,52 @@ function EditProjectContent({ params }: EditProjectPageProps) {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {isNew ? (
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all cursor-pointer"
+                title="Clear all fields and wipe saved draft"
+              >
+                Clear Form
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all cursor-pointer"
+                title="Discard unsaved local changes and reload from server"
+              >
+                Clear Draft
+              </button>
+            )}
+
+            {/* Save as Draft Button */}
+            <button
+              type="button"
+              onClick={handleSaveAsDraft}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-zinc-700 hover:text-zinc-950 bg-white border border-zinc-200 hover:bg-zinc-50 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+              title="Save changes locally in browser"
+            >
+              <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              <span>{isDraftSaved ? "Draft Saved ✓" : "Save as Draft"}</span>
+            </button>
+
             <Link
               href="/admin/edit?tab=projects"
               className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-600 hover:text-zinc-900 bg-white border border-zinc-200 shadow-2xs transition-all"
             >
               Cancel
             </Link>
+
+            {/* Publish / Save Button: disabled until title is entered */}
             <button
               onClick={() => handleSave()}
-              disabled={isSaving}
-              className="btn-primary !rounded-xl !py-2 !px-5 text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
+              disabled={isSaving || !formData.title?.trim()}
+              className="btn-primary !rounded-xl !py-2 !px-5 text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!formData.title?.trim() ? "Enter a project title to enable publish" : ""}
             >
               {isSaving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               <span>{isNew ? "Publish Project" : "Save Changes"}</span>
@@ -357,7 +534,13 @@ function EditProjectContent({ params }: EditProjectPageProps) {
         </div>
 
         {/* Full-width Comprehensive Form Card */}
-        <form onSubmit={handleSave} className="space-y-8 bg-white border border-zinc-200/90 rounded-2xl p-6 sm:p-8 shadow-xs text-xs w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave({ isDraft: false });
+          }}
+          className="space-y-8 bg-white border border-zinc-200/90 rounded-2xl p-6 sm:p-8 shadow-xs text-xs w-full"
+        >
           {/* Section 1: Core Details */}
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
@@ -661,7 +844,10 @@ function EditProjectContent({ params }: EditProjectPageProps) {
           {/* Section 5: Dedicated Case Study Page */}
           <div className="space-y-4 pt-6 border-t border-zinc-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-              <h2 className="text-sm font-bold text-zinc-900 uppercase tracking-wider text-slate-400 font-heading">
+              <h2
+                suppressHydrationWarning
+                className="text-sm font-bold text-zinc-900 uppercase tracking-wider text-slate-400 font-heading"
+              >
                 5. Dedicated Case Study Page (/projects/{formData.slug || "slug"})
               </h2>
 
@@ -720,6 +906,16 @@ function EditProjectContent({ params }: EditProjectPageProps) {
 
           {/* Case 7: Bottom Save & Cancel Bar */}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-zinc-200">
+            <button
+              type="button"
+              onClick={handleSaveAsDraft}
+              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-zinc-700 hover:text-zinc-950 bg-white border border-zinc-200 hover:bg-zinc-50 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              <span>{isDraftSaved ? "Draft Saved ✓" : "Save as Draft"}</span>
+            </button>
             <Link
               href="/admin/edit?tab=projects"
               className="px-5 py-2.5 rounded-xl text-xs font-semibold text-zinc-600 hover:text-zinc-900 bg-white border border-zinc-200 hover:bg-zinc-50 shadow-2xs transition-all cursor-pointer"
@@ -728,8 +924,9 @@ function EditProjectContent({ params }: EditProjectPageProps) {
             </Link>
             <button
               type="submit"
-              disabled={isSaving}
-              className="btn-primary !rounded-xl !py-2.5 !px-7 font-semibold flex items-center gap-2 cursor-pointer shadow-md"
+              disabled={isSaving || !formData.title?.trim()}
+              className="btn-primary !rounded-xl !py-2.5 !px-7 font-semibold flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!formData.title?.trim() ? "Enter a project title to enable publish" : ""}
             >
               {isSaving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               <span>{isSaving ? savingStatus || "Saving..." : isNew ? "Create & Publish Project" : "Save All Changes"}</span>

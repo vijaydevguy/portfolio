@@ -96,12 +96,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = "/admin";
   };
 
+  // Listen for global unauthorized/token expiration events dispatched anywhere in the app
+  useEffect(() => {
+    const handleUnauthorized = (e: Event) => {
+      const customEvent = e as CustomEvent<{ message?: string }>;
+      const reason = customEvent.detail?.message || "Session expired. Please log in again.";
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_user");
+      setToken(null);
+      setUser(null);
+      if (typeof window !== "undefined") {
+        window.location.href = `/admin?error=${encodeURIComponent(reason)}`;
+      }
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
+
   const refreshUser = async () => {
     if (!token) return;
     try {
       const res = await fetch(`${CONFIG.BACKEND_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        return;
+      }
       const data = await res.json();
       if (data.success && data.user) {
         setUser(data.user);
@@ -135,4 +157,13 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+}
+
+/**
+ * Global helper to trigger automatic logout when any API request receives 401 or 403
+ */
+export function triggerSessionExpired(message = "Session expired. Please log in again.") {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("auth:unauthorized", { detail: { message } }));
+  }
 }

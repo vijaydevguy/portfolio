@@ -1,8 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAdminAuth } from "../hooks/useAdminAuth";
 
 export default function AdminAuthPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     isSignUp,
     showPassword,
@@ -37,9 +44,9 @@ export default function AdminAuthPage() {
 
       {/* Main Card */}
       <div className="w-full sm:max-w-md bg-white border border-zinc-200/90 rounded-2xl shadow-sm p-6 sm:p-8">
-        <form onSubmit={formik.handleSubmit} className="space-y-1">
+        <form onSubmit={formik.handleSubmit} className="space-y-1" suppressHydrationWarning>
           {/* Optional Name Field (only shown during Sign Up) */}
-          {isSignUp && (
+          {mounted && isSignUp && (
             <>
               <div className="form-group">
                 <label htmlFor="name" className="form-label">
@@ -54,6 +61,7 @@ export default function AdminAuthPage() {
                   value={formik.values.name}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
+                  suppressHydrationWarning
                   className={`form-input ${
                     formik.touched.name && formik.errors.name ? "form-input-error" : ""
                   }`}
@@ -75,6 +83,7 @@ export default function AdminAuthPage() {
                     value={formik.values.role}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    suppressHydrationWarning
                     className="form-input appearance-none pr-10 cursor-pointer bg-white"
                   >
                     <option value="admin">Admin (Full Control)</option>
@@ -104,6 +113,7 @@ export default function AdminAuthPage() {
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              suppressHydrationWarning
               className={`form-input ${
                 formik.touched.email && formik.errors.email ? "form-input-error" : ""
               }`}
@@ -128,6 +138,7 @@ export default function AdminAuthPage() {
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
+                suppressHydrationWarning
                 className={`form-input !pr-11 ${
                   formik.touched.password && formik.errors.password ? "form-input-error" : ""
                 }`}
@@ -182,7 +193,8 @@ export default function AdminAuthPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full !py-3.5 !rounded-xl !text-sm !font-semibold shadow-sm"
+              suppressHydrationWarning
+              className="btn-primary w-full !py-3.5 !rounded-xl !text-sm !font-semibold shadow-sm cursor-pointer"
             >
               {isLoading ? (
                 <span className="inline-flex items-center gap-2">
@@ -203,7 +215,7 @@ export default function AdminAuthPage() {
 
         {/* Toggle between Login and Sign Up */}
         <div className="mt-6 pt-5 border-t border-zinc-200/80 text-center">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500" suppressHydrationWarning>
             {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
             <button
               type="button"
