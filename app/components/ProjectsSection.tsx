@@ -5,13 +5,20 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useProjectsData, ProjectItem } from "../hooks/useProjectsData";
 import { useProjectOptions } from "../hooks/useProjectOptions";
+import { usePortfolioData } from "../context/PortfolioDataContext";
 import ProjectCard from "./ProjectCard";
 import SectionHeading from "./ui/SectionHeading";
 
 export default function ProjectsSection() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const { projects: allHomeProjects, loading } = useProjectsData("All", { home: true });
-  const { categories } = useProjectOptions();
+  const { data: homeData, isLoading: contextLoading } = usePortfolioData();
+  const { projects: standaloneProjects, loading: standaloneLoading } = useProjectsData("All", { home: true });
+  const { categories: standaloneCategories } = useProjectOptions();
+
+  // Use fast parallel cached context projects if present, otherwise standalone
+  const allHomeProjects = homeData?.projects?.length ? homeData.projects : standaloneProjects;
+  const categories = homeData?.categories?.length ? homeData.categories : standaloneCategories;
+  const loading = allHomeProjects.length === 0 && (contextLoading || standaloneLoading);
 
   const categoryNames = ["All", ...categories.map((c) => c.name)];
 

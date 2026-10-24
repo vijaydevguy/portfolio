@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useExperienceData } from "../hooks/useExperienceData";
+import { usePortfolioData } from "../context/PortfolioDataContext";
 import {
   WORK_EXPERIENCE,
   EDUCATION as FALLBACK_EDUCATION,
@@ -9,7 +10,13 @@ import {
 import SectionHeading from "./ui/SectionHeading";
 
 export default function ExperienceSection() {
-  const { experiences, education, educations, loading } = useExperienceData();
+  const { data: homeData, isLoading: contextLoading } = usePortfolioData();
+  const { experiences: standaloneExp, education: standaloneEdu, educations: standaloneEdus, loading: standaloneLoading } = useExperienceData();
+
+  const experiences = homeData?.experiences?.length ? homeData.experiences : standaloneExp;
+  const educations = homeData?.educations?.length ? homeData.educations : standaloneEdus;
+  const education = homeData?.education || standaloneEdu;
+  const loading = experiences.length === 0 && (contextLoading || standaloneLoading);
 
   // Determine active list of experiences (use database if available, otherwise fallback)
   const displayExperiences =
@@ -132,7 +139,7 @@ export default function ExperienceSection() {
                       />
                     ) : Array.isArray(exp.description) && exp.description.length > 0 ? (
                       <ul className="space-y-1.5">
-                        {exp.description.map((point, i) => (
+                        {exp.description.map((point: string, i: number) => (
                           <li
                             key={i}
                             className="text-sm text-slate-600 flex items-start gap-2.5 leading-relaxed"

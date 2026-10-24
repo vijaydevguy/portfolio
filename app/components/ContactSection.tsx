@@ -5,10 +5,13 @@ import { getCalApi } from "@calcom/embed-react";
 import { useContactForm } from "../hooks/useContactForm";
 import { CONFIG } from "../common";
 import { useCommonSettings } from "../hooks/useCommonSettings";
+import { usePortfolioData } from "../context/PortfolioDataContext";
 import SectionHeading from "./ui/SectionHeading";
 
 export default function ContactSection() {
-  const { settings } = useCommonSettings();
+  const { data: homeData } = usePortfolioData();
+  const { settings: standaloneSettings } = useCommonSettings();
+  const settings = homeData?.settings || standaloneSettings;
   const {
     formik,
     isSubmitting,

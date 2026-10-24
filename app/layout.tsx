@@ -65,15 +65,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
-        <Suspense fallback={null}>
-          <Navbar />
-        </Suspense>
-        <Suspense fallback={null}>
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </Suspense>
-        <Suspense fallback={null}>
-          <FloatingContactMenu />
-        </Suspense>
+        <LayoutWrapper>
+          <Suspense fallback={null}>
+            <Navbar />
+          </Suspense>
+          {children}
+          <Suspense fallback={null}>
+            <FloatingContactMenu />
+          </Suspense>
+        </LayoutWrapper>
       </body>
     </html>
   );

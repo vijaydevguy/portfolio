@@ -49,7 +49,7 @@ async function ProjectDetailContent({ params }: ProjectPageProps) {
       {/* Top Breadcrumb / Back Link */}
       <div className="mb-6 lg:mb-8">
         <Link
-          href="/#projects"
+          href="/"
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-zinc-950 transition-colors group"
         >
           <svg

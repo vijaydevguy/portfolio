@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { SKILLS_ROW_1, SKILLS_ROW_2, SkillItem } from "../data/skills";
 import { useSkillsData, SkillItemData } from "../hooks/useSkillsData";
+import { usePortfolioData } from "../context/PortfolioDataContext";
 import SectionHeading from "./ui/SectionHeading";
 
 interface UnifiedSkill {
@@ -80,7 +81,11 @@ function SkillChip({ skill }: { skill: UnifiedSkill }) {
 }
 
 export default function SkillsSection() {
-  const { skills: dynamicSkills, loading } = useSkillsData();
+  const { data: homeData, isLoading: contextLoading } = usePortfolioData();
+  const { skills: standaloneSkills, loading: standaloneLoading } = useSkillsData();
+
+  const dynamicSkills = homeData?.skills?.length ? homeData.skills : standaloneSkills;
+  const loading = dynamicSkills.length === 0 && (contextLoading || standaloneLoading);
 
   // If dynamic skills exist in database, divide them into 2 marquee rows
   let row1: UnifiedSkill[] = [];

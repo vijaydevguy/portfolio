@@ -38,10 +38,14 @@ export default function FloatingContactMenu() {
 
   // WhatsApp click handler with prefilled message
   const handleWhatsAppClick = () => {
+    const rawNumber = settings.whatsappNumber || CONFIG.WHATSAPP_NUMBER || "";
+    // Clean all non-digit characters (+, spaces, hyphens, brackets)
+    const cleanNumber = rawNumber.replace(/\D/g, "");
     const encodedMessage = encodeURIComponent(
       settings.whatsappPrefilledMessage || CONFIG.WHATSAPP_PREFILLED_MESSAGE,
     );
-    const whatsappUrl = `https://wa.me/${settings.whatsappNumber || CONFIG.WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    // api.whatsapp.com/send works reliably across both mobile app and WhatsApp Web
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedMessage}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     setIsOpen(false);
   };

@@ -196,7 +196,7 @@ export default function AllProjectsPage() {
           {/* Left Side: Back Arrow, Title, Subtitle */}
           <div className="flex items-center gap-3.5 min-w-0">
             <Link
-              href="/#projects"
+              href="/"
               aria-label="Back to home"
               className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 hover:text-zinc-950 transition-colors group flex-shrink-0 cursor-pointer"
             >

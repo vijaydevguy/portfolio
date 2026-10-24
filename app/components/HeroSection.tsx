@@ -4,11 +4,17 @@ import Image from "next/image";
 import { CLOUDINARY_URLS } from "../assets";
 import { CONFIG } from "../common";
 import { useHeroData } from "../hooks/useHeroData";
+import { usePortfolioData } from "../context/PortfolioDataContext";
 import { getCloudinaryUrl, getCloudinaryDownloadUrl } from "../lib/cloudinary";
 import { HERO_FALLBACK_DATA } from "../data/hero";
 
 export default function HeroSection() {
-  const { data: heroData, loading } = useHeroData();
+  const { data: homeData, isLoading: contextLoading } = usePortfolioData();
+  const { data: standaloneHeroData, loading: standaloneLoading } = useHeroData();
+
+  // Use fast cached/parallel context data if available, otherwise standalone
+  const heroData = homeData?.hero || standaloneHeroData;
+  const loading = !heroData && (contextLoading || standaloneLoading);
 
   // If loading, render an elegant skeleton so we never flash fallback defaults
   if (loading) {
