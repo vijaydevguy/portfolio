@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ReactNode, Suspense } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { AuthProvider } from "../context/AuthContext";
 import { PortfolioDataProvider, usePortfolioData } from "../context/PortfolioDataContext";
 import LuxuryPageLoader from "./ui/LuxuryPageLoader";
@@ -11,10 +11,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isAdmin = pathname?.startsWith("/admin");
   const isHome = pathname === "/";
   const { isInitialLoad } = usePortfolioData();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <>
-      {isHome && <LuxuryPageLoader isLoading={isInitialLoad} />}
+      {mounted && isHome && <LuxuryPageLoader isLoading={isInitialLoad} />}
       <div className={isAdmin ? "w-full min-h-screen" : "pt-20 w-full"}>
         {children}
       </div>

@@ -72,29 +72,40 @@ export default function FloatingContactMenu() {
         {isOpen && (
           <div className="mb-3 flex flex-col items-end space-y-2 font-heading">
             {/* Card 1: WhatsApp Card */}
-            {settings.isWhatsappPublished !== false && (
-              <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                transition={{ duration: 0.16, delay: 0.06 }}
-              >
-                <button
-                  type="button"
-                  onClick={handleWhatsAppClick}
-                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+            {settings.isWhatsappPublished !== false && (() => {
+              const rawNumber = settings.whatsappNumber || CONFIG.WHATSAPP_NUMBER || "";
+              const cleanNumber = rawNumber.replace(/\D/g, "");
+              const encodedMessage = encodeURIComponent(
+                settings.whatsappPrefilledMessage || CONFIG.WHATSAPP_PREFILLED_MESSAGE,
+              );
+              const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedMessage}`;
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.16, delay: 0.06 }}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
-                    <RiWhatsappFill className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-zinc-900 group-hover:text-emerald-600 transition-colors">
-                      WhatsApp Chat
-                    </p>
-                  </div>
-                </button>
-              </motion.div>
-            )}
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-zinc-200 shadow-md hover:bg-zinc-50 active:bg-zinc-100 transition-all cursor-pointer group text-left min-w-[190px]"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+                      <RiWhatsappFill className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-zinc-900 group-hover:text-emerald-600 transition-colors">
+                        WhatsApp Chat
+                      </p>
+                    </div>
+                  </a>
+                </motion.div>
+              );
+            })()}
 
             {/* Card 2: Phone Call Card */}
             {settings.isPhonePublished !== false && (
