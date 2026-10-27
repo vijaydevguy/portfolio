@@ -152,6 +152,19 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     // 1. Initial parallel fetch
     fetchAllDataParallel();
+
+    // 2. Listen to cache invalidation events (e.g. when admin saves hero/resume)
+    const handleInvalidate = () => {
+      fetchAllDataParallel();
+    };
+
+    window.addEventListener("portfolio_cache_invalidated", handleInvalidate);
+    window.addEventListener("storage", handleInvalidate);
+
+    return () => {
+      window.removeEventListener("portfolio_cache_invalidated", handleInvalidate);
+      window.removeEventListener("storage", handleInvalidate);
+    };
   }, [fetchAllDataParallel]);
 
   return (

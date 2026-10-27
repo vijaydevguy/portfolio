@@ -5,7 +5,7 @@ import { CLOUDINARY_URLS } from "../assets";
 import { CONFIG } from "../common";
 import { useHeroData } from "../hooks/useHeroData";
 import { usePortfolioData } from "../context/PortfolioDataContext";
-import { getCloudinaryUrl, getCloudinaryDownloadUrl } from "../lib/cloudinary";
+import { getCloudinaryUrl, getCloudinaryDownloadUrl, normalizeResumeUrl } from "../lib/cloudinary";
 import { HERO_FALLBACK_DATA } from "../data/hero";
 
 export default function HeroSection() {
@@ -14,38 +14,7 @@ export default function HeroSection() {
 
   // Use fast cached/parallel context data if available, otherwise standalone
   const heroData = homeData?.hero || standaloneHeroData;
-  const loading = !heroData && (contextLoading || standaloneLoading);
-
-  // If loading, render an elegant skeleton so we never flash fallback defaults
-  if (loading) {
-    return (
-      <section
-        id="hero"
-        className="w-full bg-white pt-10 pb-16 lg:pt-16 lg:pb-24 animate-pulse"
-      >
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
-            <div className="lg:col-span-7 flex flex-col items-center lg:items-start space-y-6">
-              <div className="space-y-4 w-full flex flex-col items-center lg:items-start">
-                <div className="h-12 sm:h-14 bg-zinc-200/80 rounded-2xl w-3/4 max-w-md" />
-                <div className="h-5 bg-zinc-200/70 rounded-lg w-full max-w-lg mt-2" />
-                <div className="h-5 bg-zinc-200/60 rounded-lg w-2/3 max-w-sm" />
-              </div>
-              <div className="flex flex-wrap gap-3.5 pt-4">
-                <div className="h-12 w-44 bg-zinc-200/80 rounded-xl" />
-                <div className="h-12 w-36 bg-zinc-200/70 rounded-xl" />
-              </div>
-            </div>
-            <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="w-full max-w-md h-80 bg-zinc-100 rounded-3xl" />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // If section visibility is disabled by admin, don't render it
+  // Section visibility: if explicitly set to false in fetched DB, hide it
   if (heroData?.isVisible === false) {
     return null;
   }
@@ -104,21 +73,33 @@ export default function HeroSection() {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
               {/* Dynamic Resumes (Capped at 3) */}
               {resumes.map((resume, idx) => {
-                const isPdf =
-                  (resume.url || "").toLowerCase().endsWith(".pdf") ||
-                  (resume.url || "").includes(".pdf");
-                const downloadUrl = isPdf
-                  ? getCloudinaryDownloadUrl(
-                      resume.url,
-                      `${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf`,
-                    )
-                  : resume.url || CONFIG.RESUME_DOWNLOAD_URL;
+                const rawUrl = resume.url?.trim() || "";
+                
+                // Cloudinary flow commented out as requested; directly use normalized URL (Google Drive / Direct link)
+                // const isPdf =
+                //   rawUrl.toLowerCase().endsWith(".pdf") ||
+                //   rawUrl.includes(".pdf");
+                // const downloadUrl = isPdf
+                //   ? getCloudinaryDownloadUrl(
+                //       rawUrl,
+                //       `${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf`,
+                //     )
+                //   : normalizeResumeUrl(rawUrl) || CONFIG.RESUME_DOWNLOAD_URL;
+
+                // Placeholder fallback commented out as requested; use actual entered URL
+                // const downloadUrl = normalizeResumeUrl(rawUrl) || CONFIG.RESUME_DOWNLOAD_URL;
+                const downloadUrl = normalizeResumeUrl(rawUrl);
+                const isDirectPdf = rawUrl.toLowerCase().endsWith(".pdf");
+
+                if (!downloadUrl) return null;
 
                 return (
                   <a
                     key={idx}
                     href={downloadUrl}
-                    download={`${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={isDirectPdf ? `${(resume.label || "Resume").replace(/\s+/g, "_")}.pdf` : undefined}
                     className={
                       resume.isPrimary || idx === 0
                         ? "btn-primary !rounded-xl !py-3.5 !font-heading !font-semibold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30"

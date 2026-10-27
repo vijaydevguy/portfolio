@@ -39,7 +39,9 @@ export const HERO_FALLBACK_DATA: HeroFallbackData = {
   resumes: [
     {
       label: "Download Resume",
-      url: CONFIG.RESUME_DOWNLOAD_URL,
+      // Placeholder url commented out as requested
+      // url: CONFIG.RESUME_DOWNLOAD_URL,
+      url: "",
       isPrimary: true,
     },
   ],

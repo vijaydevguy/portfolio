@@ -278,7 +278,9 @@ export default function MediaUploader({
                 setManualUrl(e.target.value);
                 onSelect(e.target.value);
               }}
-              placeholder={isPdf ? "https://drive.google.com/uc?export=download&id=..." : "https://res.cloudinary.com/... or short path"}
+              // placeholder commented out as requested
+              // placeholder={isPdf ? "https://drive.google.com/uc?export=download&id=..." : "https://res.cloudinary.com/... or short path"}
+              placeholder=""
               className="form-input bg-white text-xs py-2"
             />
             {currentValue && (

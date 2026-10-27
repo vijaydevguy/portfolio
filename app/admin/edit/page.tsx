@@ -14,6 +14,7 @@ import AdminSkillsManager from "../../components/admin/AdminSkillsManager";
 import AdminExperienceManager from "../../components/admin/AdminExperienceManager";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import { useDebounce } from "../../hooks/useDebounce";
+import { normalizeResumeUrl } from "../../lib/cloudinary";
 import { LuTrash2, LuRefreshCw } from "react-icons/lu";
 
 interface UserProfile {
@@ -181,7 +182,9 @@ function AdminEditContent() {
     resumes: [
       {
         label: "Download Resume",
-        url: "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
+        // Dummy url commented out as requested; use empty string unless loaded from DB
+        // url: "https://drive.google.com/uc?export=download&id=1QfIBC0J_QRX4MRoycDwEdD3xBt2kKSpE",
+        url: "",
         isPrimary: true,
       },
     ],
@@ -227,18 +230,40 @@ function AdminEditContent() {
     setSavingHero(true);
     setHeroSaveMsg(null);
     try {
+      // Normalize resume links before persisting (e.g. Google Drive view URLs -> direct download URLs)
+      const sanitizedPayload = {
+        ...heroForm,
+        resumes: heroForm.resumes.map((r) => ({
+          ...r,
+          url: normalizeResumeUrl(r.url || "").trim(),
+        })),
+      };
+
       const res = await fetch(`${CONFIG.BACKEND_URL}/api/sections/hero`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(heroForm),
+        body: JSON.stringify(sanitizedPayload),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Failed to update hero section");
       }
+
+      // Update local form state with sanitized data
+      setHeroForm(sanitizedPayload);
+
+      // Invalidate localStorage home cache so homepage reflects updates immediately
+      try {
+        localStorage.removeItem("portfolio_home_cache_v1");
+        // Dispatch storage event to immediately invalidate cache across any open browser tabs
+        window.dispatchEvent(new Event("portfolio_cache_invalidated"));
+      } catch (cacheErr) {
+        console.warn("Could not invalidate cache:", cacheErr);
+      }
+
       setHeroSaveMsg({ type: "success", text: "Hero & Navbar settings saved successfully!" });
       setTimeout(() => setHeroSaveMsg(null), 4000);
     } catch (err: unknown) {

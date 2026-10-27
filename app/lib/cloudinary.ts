@@ -104,7 +104,7 @@ export function getCloudinaryDownloadUrl(pathOrUrl: string, customFilename?: str
     pathOrUrl.startsWith("https://")
   ) {
     if (!pathOrUrl.includes("res.cloudinary.com")) {
-      return pathOrUrl;
+      return normalizeResumeUrl(pathOrUrl);
     }
   }
 
@@ -118,4 +118,34 @@ export function getCloudinaryDownloadUrl(pathOrUrl: string, customFilename?: str
   const attachmentFlag = `fl_attachment:${encodeURIComponent(cleanFilename.replace(/\.pdf$/, ""))}`;
 
   return `${CONFIG.CLOUDINARY_BASE_URL}/${CONFIG.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload/${attachmentFlag}/${cleanPath}`;
+}
+
+/**
+ * Normalizes resume URLs:
+ * Converts various Google Drive link formats (e.g. drive.google.com/file/d/ID/view, open?id=ID, etc.)
+ * into a direct downloadable link or clean preview link.
+ */
+export function normalizeResumeUrl(url: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+
+  // Handle Google Drive links
+  if (trimmed.includes("drive.google.com")) {
+    // Extract file ID from:
+    // 1. /file/d/FILE_ID/...
+    // 2. id=FILE_ID
+    // 3. /d/FILE_ID
+    const match =
+      trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+      trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+      trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+
+    if (match && match[1]) {
+      const fileId = match[1];
+      // Return direct export download URL which triggers file download across all browsers
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+
+  return trimmed;
 }
